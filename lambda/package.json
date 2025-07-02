@@ -1,0 +1,11 @@
+{
+  "name": "welcome-email-lambda",
+  "version": "1.0.0",
+  "description": "Lambda function to send welcome emails to students",
+  "main": "welcome-email-function.js",
+  "dependencies": {
+    "@aws-sdk/client-ses": "^3.490.0",
+    "@aws-sdk/client-dynamodb": "^3.490.0",
+    "@aws-sdk/lib-dynamodb": "^3.490.0"
+  }
+}
