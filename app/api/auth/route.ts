@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     const command = new QueryCommand({
-      TableName: 'users',
+      TableName: process.env.USERS_TABLE_NAME || 'users',
       IndexName: 'email-index',
       KeyConditionExpression: 'email = :email',
       ExpressionAttributeValues: {

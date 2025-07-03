@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
     }
     
     const putCommand = new PutCommand({
-      TableName: 'users',
+      TableName: process.env.USERS_TABLE_NAME || 'users',
       Item: userData
     })
     
