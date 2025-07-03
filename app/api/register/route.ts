@@ -74,10 +74,20 @@ export async function POST(request: NextRequest) {
       message: 'Registration submitted successfully! Please check your email and verify your address. We will contact you soon.',
       id: registrationData.id
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Registration error:', error)
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      statusCode: error.$metadata?.httpStatusCode
+    })
     return NextResponse.json(
-      { success: false, message: 'Failed to submit registration. Please try again.' },
+      { 
+        success: false, 
+        message: 'Failed to submit registration. Please try again.',
+        error: error.message,
+        code: error.code
+      },
       { status: 500 }
     )
   }
