@@ -5,10 +5,10 @@ import { randomUUID } from 'crypto'
 
 const client = new DynamoDBClient({
   region: process.env.NEXT_PUBLIC_AWS_REGION || 'ap-south-1',
-  credentials: process.env.MY_AWS_ACCESS_KEY_ID && process.env.MY_AWS_SECRET_ACCESS_KEY ? {
-    accessKeyId: process.env.MY_AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.MY_AWS_SECRET_ACCESS_KEY
-  } : undefined
+  credentials: {
+    accessKeyId: process.env.MY_AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.MY_AWS_SECRET_ACCESS_KEY || ''
+  }
 })
 const docClient = DynamoDBDocumentClient.from(client)
 
@@ -29,10 +29,10 @@ export async function POST(request: NextRequest) {
       const { SESClient, VerifyEmailIdentityCommand } = require('@aws-sdk/client-ses')
       const sesClient = new SESClient({ 
         region: process.env.NEXT_PUBLIC_AWS_REGION || 'ap-south-1',
-        credentials: process.env.MY_AWS_ACCESS_KEY_ID && process.env.MY_AWS_SECRET_ACCESS_KEY ? {
-          accessKeyId: process.env.MY_AWS_ACCESS_KEY_ID,
-          secretAccessKey: process.env.MY_AWS_SECRET_ACCESS_KEY
-        } : undefined
+        credentials: {
+          accessKeyId: process.env.MY_AWS_ACCESS_KEY_ID || '',
+          secretAccessKey: process.env.MY_AWS_SECRET_ACCESS_KEY || ''
+        }
       })
       
       const verifyCommand = new VerifyEmailIdentityCommand({
