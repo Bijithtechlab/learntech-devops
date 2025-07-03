@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb'
+import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb'
 
 const client = new DynamoDBClient({
   region: process.env.NEXT_PUBLIC_AWS_REGION || 'ap-south-1',
@@ -22,10 +22,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const command = new QueryCommand({
+    const command = new ScanCommand({
       TableName: process.env.USERS_TABLE_NAME || 'users',
-      IndexName: 'email-index',
-      KeyConditionExpression: 'email = :email',
+      FilterExpression: 'email = :email',
       ExpressionAttributeValues: {
         ':email': email
       }
