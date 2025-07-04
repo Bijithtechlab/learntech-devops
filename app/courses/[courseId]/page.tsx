@@ -1,0 +1,133 @@
+'use client'
+import { useState } from 'react'
+import { getCourseById } from '@/data/courses'
+import { aiDevOpsSyllabus } from '@/data/syllabus'
+import Link from 'next/link'
+import { Clock, Users, Award, CheckCircle, BookOpen } from 'lucide-react'
+import { notFound } from 'next/navigation'
+import SyllabusModal from '@/components/SyllabusModal'
+
+interface CourseDetailPageProps {
+  params: {
+    courseId: string
+  }
+}
+
+export default function CourseDetailPage({ params }: CourseDetailPageProps) {
+  const [showSyllabus, setShowSyllabus] = useState(false)
+  const course = getCourseById(params.courseId)
+
+  if (!course) {
+    notFound()
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-lg shadow-sm p-8">
+          <div className="mb-6">
+            <div className="flex items-center gap-4 mb-4">
+              <h1 className="text-3xl font-bold text-gray-900">{course.title}</h1>
+              {course.status === 'coming-soon' && (
+                <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm">
+                  Coming Soon
+                </span>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-6 text-gray-600 mb-6">
+              <div className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                <span>{course.duration}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                <span>{course.level}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Award className="h-5 w-5" />
+                <span>{course.category}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="md:col-span-2">
+              <h2 className="text-xl font-semibold mb-4">Course Description</h2>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                {course.description}
+              </p>
+
+              <h2 className="text-xl font-semibold mb-4">What You'll Learn</h2>
+              <ul className="space-y-3 mb-6">
+                {course.features.map((feature, index) => (
+                  <li key={index} className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                    <span className="text-gray-700">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              {course.id === 'ai-devops-cloud' && (
+                <div className="mt-6">
+                  <button
+                    onClick={() => setShowSyllabus(true)}
+                    className="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold"
+                  >
+                    <BookOpen className="h-5 w-5" />
+                    View Detailed Syllabus
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="md:col-span-1">
+              <div className="bg-gray-50 rounded-lg p-6 sticky top-6">
+                <div className="text-center mb-6">
+                  <div className="text-3xl font-bold text-blue-600 mb-2">
+                    ₹{course.price.toLocaleString()}
+                  </div>
+                  <p className="text-gray-600">One-time payment</p>
+                </div>
+
+                <div className="space-y-3">
+                  {course.status === 'active' ? (
+                    <Link
+                      href={`/register/${course.id}`}
+                      className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-center block"
+                    >
+                      Register Now
+                    </Link>
+                  ) : (
+                    <button
+                      disabled
+                      className="w-full bg-gray-400 text-white py-3 px-4 rounded-lg font-semibold cursor-not-allowed"
+                    >
+                      Coming Soon
+                    </button>
+                  )}
+                  
+                  <Link
+                    href="/courses"
+                    className="w-full border-2 border-blue-600 text-blue-600 py-3 px-4 rounded-lg font-semibold hover:bg-blue-50 transition-colors text-center block"
+                  >
+                    View All Courses
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {course.id === 'ai-devops-cloud' && (
+          <SyllabusModal
+            isOpen={showSyllabus}
+            onClose={() => setShowSyllabus(false)}
+            syllabus={aiDevOpsSyllabus}
+            courseTitle={course.title}
+          />
+        )}
+      </div>
+    </div>
+  )
+}

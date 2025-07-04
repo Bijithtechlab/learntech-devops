@@ -21,9 +21,6 @@ export default function Header() {
             <Link href="/student" className="text-gray-700 hover:text-blue-600 font-medium">
               Student Portal
             </Link>
-            <Link href="/register" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-              Register
-            </Link>
           </nav>
         </div>
       </div>
