@@ -4,11 +4,7 @@ import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb'
 import { randomUUID } from 'crypto'
 
 const client = new DynamoDBClient({
-  region: process.env.NEXT_PUBLIC_AWS_REGION || 'ap-south-1',
-  credentials: {
-    accessKeyId: process.env.MY_AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.MY_AWS_SECRET_ACCESS_KEY || ''
-  }
+  region: process.env.NEXT_PUBLIC_AWS_REGION || 'ap-south-1'
 })
 const docClient = DynamoDBDocumentClient.from(client)
 
@@ -28,11 +24,7 @@ export async function POST(request: NextRequest) {
     try {
       const { SESClient, VerifyEmailIdentityCommand } = require('@aws-sdk/client-ses')
       const sesClient = new SESClient({ 
-        region: process.env.NEXT_PUBLIC_AWS_REGION || 'ap-south-1',
-        credentials: {
-          accessKeyId: process.env.MY_AWS_ACCESS_KEY_ID || '',
-          secretAccessKey: process.env.MY_AWS_SECRET_ACCESS_KEY || ''
-        }
+        region: process.env.NEXT_PUBLIC_AWS_REGION || 'ap-south-1'
       })
       
       const verifyCommand = new VerifyEmailIdentityCommand({
