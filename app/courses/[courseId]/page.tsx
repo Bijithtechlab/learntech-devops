@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { getCourseById } from '@/data/courses'
 import { aiDevOpsSyllabus } from '@/data/syllabus'
 import Link from 'next/link'
-import { Clock, Users, Award, CheckCircle, BookOpen } from 'lucide-react'
+import { Clock, Users, Award, CheckCircle, BookOpen, Star } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import SyllabusModal from '@/components/SyllabusModal'
 
@@ -69,15 +69,34 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
               </ul>
 
               {course.id === 'ai-devops-cloud' && (
-                <div className="mt-6">
-                  <button
-                    onClick={() => setShowSyllabus(true)}
-                    className="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold"
-                  >
-                    <BookOpen className="h-5 w-5" />
-                    View Detailed Syllabus
-                  </button>
-                </div>
+                <>
+                  <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-lg p-6 mt-6">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Award className="h-6 w-6 text-yellow-600" />
+                      <h3 className="text-xl font-bold text-yellow-800">🎯 Exclusive Internship Opportunity!</h3>
+                    </div>
+                    <p className="text-gray-700 mb-4">
+                      This course makes you <strong>eligible for our highly selective internship program</strong> - limited to only 2 students! Get real-world experience and direct pathway to employment.
+                    </p>
+                    <Link
+                      href="/internship"
+                      className="inline-flex items-center gap-2 bg-yellow-600 text-white px-6 py-3 rounded-lg hover:bg-yellow-700 transition-colors font-semibold"
+                    >
+                      <Star className="h-5 w-5" />
+                      View Internship Details
+                    </Link>
+                  </div>
+                  
+                  <div className="mt-6">
+                    <button
+                      onClick={() => setShowSyllabus(true)}
+                      className="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold"
+                    >
+                      <BookOpen className="h-5 w-5" />
+                      View Detailed Syllabus
+                    </button>
+                  </div>
+                </>
               )}
             </div>
 
@@ -114,6 +133,30 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                     View All Courses
                   </Link>
                 </div>
+
+                {course.id === 'ai-devops-cloud' && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+                    <h3 className="text-lg font-semibold text-blue-900 mb-3">Course Schedule</h3>
+                    <div className="space-y-2 text-sm text-blue-800">
+                      <div>
+                        <span className="font-medium">Mode:</span>
+                        <span className="ml-1">Online Classes</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Days:</span>
+                        <span className="ml-1">Mon, Wed, Thu, Fri</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Time:</span>
+                        <span className="ml-1">04:30-06:30 PM IST</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Start:</span>
+                        <span className="ml-1">04-Aug-2025</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

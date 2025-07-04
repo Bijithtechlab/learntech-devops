@@ -21,6 +21,9 @@ export default function Header() {
             <Link href="/student" className="text-gray-700 hover:text-blue-600 font-medium">
               Student Portal
             </Link>
+            <Link href="/internship" className="text-gray-700 hover:text-blue-600 font-medium">
+              Internship
+            </Link>
           </nav>
         </div>
       </div>
