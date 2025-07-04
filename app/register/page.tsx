@@ -25,7 +25,7 @@ export default function RegisterPage() {
     setSubmitMessage('')
 
     try {
-      const response = await fetch('/api/register', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
