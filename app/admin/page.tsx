@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { X } from 'lucide-react'
+import { useUser } from '@/contexts/UserContext'
 
 interface Registration {
   id: string
@@ -23,14 +24,16 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true)
   const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null)
   const [updating, setUpdating] = useState(false)
-  const [user, setUser] = useState<any>(null)
   const router = useRouter()
+  const { user } = useUser()
 
   useEffect(() => {
-    // Set a dummy admin user since we don't have session management
-    setUser({ role: 'admin', name: 'Admin User' })
+    if (!user) {
+      router.push('/login')
+      return
+    }
     fetchRegistrations()
-  }, [])
+  }, [user])
 
   const fetchRegistrations = async () => {
     try {
@@ -48,8 +51,30 @@ export default function AdminPage() {
   }
 
   const updateStatus = async (id: string, newStatus: string) => {
-    // Admin functionality not implemented yet
-    alert('Admin functionality will be implemented in the next phase')
+    setUpdating(true)
+    try {
+      const response = await fetch('https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/update-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status: newStatus })
+      })
+      
+      const result = await response.json()
+      
+      if (result.success) {
+        setRegistrations(prev => 
+          prev.map(reg => reg.id === id ? { ...reg, PaymentStatus: newStatus } : reg)
+        )
+        setSelectedRegistration(null)
+      } else {
+        alert('Failed to update status: ' + result.message)
+      }
+    } catch (error) {
+      console.error('Error updating status:', error)
+      alert('Failed to update status. Please try again.')
+    } finally {
+      setUpdating(false)
+    }
   }
 
   const getStatusColor = (status: string) => {

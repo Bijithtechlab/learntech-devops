@@ -1,6 +1,7 @@
 import './globals.css'
 import { Inter } from 'next/font/google'
 import ConditionalHeader from '@/components/ConditionalHeader'
+import { UserProvider } from '@/contexts/UserContext'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -17,8 +18,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ConditionalHeader />
-        {children}
+        <UserProvider>
+          <ConditionalHeader />
+          {children}
+        </UserProvider>
       </body>
     </html>
   )

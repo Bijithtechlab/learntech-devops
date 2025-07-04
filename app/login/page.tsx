@@ -2,12 +2,14 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Mail, Lock } from 'lucide-react'
+import { useUser } from '@/contexts/UserContext'
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+  const { setUser } = useUser()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,6 +26,7 @@ export default function LoginPage() {
       const result = await response.json()
 
       if (result.success) {
+        setUser(result.user)
         if (result.user.role === 'admin') {
           router.push('/admin')
         } else {
@@ -65,7 +68,7 @@ export default function LoginPage() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={formData.email}
               onChange={(e) => setFormData({...formData, email: e.target.value})}
-              placeholder="admin@learntechlab.com"
+              placeholder="Enter your email"
             />
           </div>
 
@@ -80,7 +83,7 @@ export default function LoginPage() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={formData.password}
               onChange={(e) => setFormData({...formData, password: e.target.value})}
-              placeholder="admin123"
+              placeholder="Enter your password"
             />
           </div>
 
