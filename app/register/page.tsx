@@ -25,7 +25,7 @@ export default function RegisterPage() {
     setSubmitMessage('')
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/register`, {
+      const response = await fetch('https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
