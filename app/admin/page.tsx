@@ -34,10 +34,14 @@ export default function AdminPage() {
 
   const fetchRegistrations = async () => {
     try {
-      // For now, show a message that admin features are not implemented
-      setRegistrations([])
+      const response = await fetch('https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/admin')
+      const data = await response.json()
+      if (data.success) {
+        setRegistrations(data.registrations)
+      }
     } catch (error) {
       console.error('Error fetching registrations:', error)
+      setRegistrations([])
     } finally {
       setLoading(false)
     }
