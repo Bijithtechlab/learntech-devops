@@ -22,12 +22,12 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gray-50 py-12 overflow-x-hidden">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow-sm p-8">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8">
           <div className="mb-6">
-            <div className="flex items-center gap-4 mb-4">
-              <h1 className="text-3xl font-bold text-gray-900">{course.title}</h1>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 break-words">{course.title}</h1>
               {course.status === 'coming-soon' && (
                 <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm">
                   Coming Soon
@@ -35,24 +35,24 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
               )}
             </div>
             
-            <div className="flex items-center gap-6 text-gray-600 mb-6">
+            <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-gray-600 mb-6">
               <div className="flex items-center gap-2">
                 <Clock className="h-5 w-5" />
-                <span>{course.duration}</span>
+                <span className="text-sm sm:text-base">{course.duration}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                <span>{course.level}</span>
+                <span className="text-sm sm:text-base">{course.level}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Award className="h-5 w-5" />
-                <span>{course.category}</span>
+                <span className="text-sm sm:text-base">{course.category}</span>
               </div>
             </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="md:col-span-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+            <div className="md:col-span-2 min-w-0">
               <h2 className="text-xl font-semibold mb-4">Course Description</h2>
               <p className="text-gray-600 mb-6 leading-relaxed">
                 {course.description}
@@ -70,7 +70,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
 
               {course.id === 'ai-devops-cloud' && (
                 <>
-                  <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-lg p-6 mt-6">
+                  <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-lg p-4 sm:p-6 mt-6">
                     <div className="flex items-center gap-3 mb-3">
                       <Award className="h-6 w-6 text-yellow-600" />
                       <h3 className="text-xl font-bold text-yellow-800">🎯 Exclusive Internship Opportunity!</h3>
@@ -100,8 +100,8 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
               )}
             </div>
 
-            <div className="md:col-span-1">
-              <div className="bg-gray-50 rounded-lg p-6 sticky top-6">
+            <div className="md:col-span-1 min-w-0">
+              <div className="bg-gray-50 rounded-lg p-4 sm:p-6 md:sticky md:top-6">
                 <div className="text-center mb-6">
                   <div className="text-3xl font-bold text-blue-600 mb-2">
                     ₹{course.price.toLocaleString()}

@@ -1,3 +1,41 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  /* Prevent zoom on input focus */
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+  
+  /* Touch-friendly buttons */
+  button {
+    min-height: 44px;
+  }
+  
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+  /* Fix iOS Safari viewport issues */
+  body {
+    -webkit-text-size-adjust: 100%;
+  }
+  
+  /* Remove iOS input shadows */
+  input,
+  textarea {
+    -webkit-appearance: none;
+    border-radius: 0;
+  }
+}

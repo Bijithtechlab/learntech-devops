@@ -58,7 +58,7 @@ export const courses: Course[] = [
     level: 'Beginner',
     category: 'Technology',
     features: ['Network Protocols', 'Linux Administration', 'Security Basics', 'Hands-on Labs'],
-    status: 'active'
+    status: 'coming-soon'
   },
   {
     id: 'aws-ai-practitioner',
@@ -70,7 +70,7 @@ export const courses: Course[] = [
     level: 'Intermediate',
     category: 'Cloud',
     features: ['AWS AI Services', 'Machine Learning', 'SageMaker', 'Certification Prep'],
-    status: 'active'
+    status: 'coming-soon'
   },
   {
     id: 'jira-agile',

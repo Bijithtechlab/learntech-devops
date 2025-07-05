@@ -15,6 +15,8 @@ interface Registration {
   motivation: string
   referredBy: string
   collegeName: string
+  courseId?: string
+  courseName?: string
   createdAt: string
   PaymentStatus: string
 }
@@ -108,10 +110,10 @@ export default function AdminPage() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Course</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Education</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Experience</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment Status</th>
                 </tr>
               </thead>
@@ -126,6 +128,14 @@ export default function AdminPage() {
                         <div className="text-sm text-gray-500">{reg.collegeName}</div>
                       )}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-blue-600">
+                        {reg.courseName || 'Legacy Registration'}
+                      </div>
+                      {reg.courseId && (
+                        <div className="text-xs text-gray-500">{reg.courseId}</div>
+                      )}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {reg.email}
                     </td>
@@ -135,9 +145,7 @@ export default function AdminPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {reg.education}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {reg.experience || 'Not specified'}
-                    </td>
+
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(reg.PaymentStatus)}`}>
                         {reg.PaymentStatus}
@@ -170,6 +178,16 @@ export default function AdminPage() {
               </div>
               
               <div className="p-8 space-y-6">
+                {selectedRegistration.courseName && (
+                  <div className="bg-blue-50 p-4 rounded-xl border-l-4 border-blue-400">
+                    <label className="block text-sm font-semibold text-blue-700 uppercase tracking-wide mb-2">Course Registration</label>
+                    <div className="text-lg font-medium text-blue-900">{selectedRegistration.courseName}</div>
+                    {selectedRegistration.courseId && (
+                      <div className="text-sm text-blue-600 mt-1">Course ID: {selectedRegistration.courseId}</div>
+                    )}
+                  </div>
+                )}
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-gray-50 p-4 rounded-xl">
                     <label className="block text-sm font-semibold text-gray-600 uppercase tracking-wide mb-2">Contact Information</label>
