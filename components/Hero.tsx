@@ -13,18 +13,12 @@ export default function Hero() {
             Master AI-Powered Software Development, DevOps, Cloud Technologies, and Full-Stack Development through 
             comprehensive hands-on training with industry experts.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center px-4">
+          <div className="flex justify-center px-4">
             <Link 
               href="/courses" 
               className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center"
             >
               Explore Courses <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-            <Link 
-              href="/register" 
-              className="border-2 border-blue-600 text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
-            >
-              Register Now
             </Link>
           </div>
         </div>

@@ -34,10 +34,7 @@ export default function Footer() {
                 <Mail className="h-4 w-4 mr-2" />
                 <span className="text-gray-300">info@learntechlab.com</span>
               </div>
-              <div className="flex items-center">
-                <Phone className="h-4 w-4 mr-2" />
-                <span className="text-gray-300">+1 (555) 123-4567</span>
-              </div>
+
             </div>
           </div>
         </div>

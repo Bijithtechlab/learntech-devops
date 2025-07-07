@@ -99,7 +99,16 @@ export default function TrainersPage() {
                 A highly experienced technology trainer and certified project management professional with over 14 years of international expertise in delivering advanced data analytics, AI, and healthcare IT projects across Asia, Europe, and the Middle East. Specializes in AI-assisted application development and cutting-edge cloud technologies.
               </p>
               
-              <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <div className="grid md:grid-cols-3 gap-6 mb-6">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3">Certifications</h4>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />PMP®</li>
+                    <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />CPMAI®</li>
+                    <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />AWS Solution Architect - SAA-C03</li>
+                    <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />AWS Cloud Practitioner - CLF-C02</li>
+                  </ul>
+                </div>
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-3">AI & LLM Expertise</h4>
                   <ul className="space-y-2 text-sm text-gray-600">

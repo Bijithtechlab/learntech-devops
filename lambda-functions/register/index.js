@@ -1,5 +1,5 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBDocumentClient, PutCommand, ScanCommand } = require('@aws-sdk/lib-dynamodb');
 const { randomUUID } = require('crypto');
 
 const client = new DynamoDBClient({ region: 'ap-south-1' });
@@ -7,6 +7,81 @@ const docClient = DynamoDBDocumentClient.from(client);
 
 exports.handler = async (event) => {
   try {
+    // Handle GET request for user existence check
+    if (event.httpMethod === 'GET') {
+      const email = event.queryStringParameters?.email;
+      const courseId = event.queryStringParameters?.courseId;
+      
+      if (!email) {
+        return {
+          statusCode: 400,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            success: false,
+            message: 'Email parameter is required'
+          })
+        };
+      }
+
+      if (courseId) {
+        // Check if user already registered for specific course
+        const courseCheckCommand = new ScanCommand({
+          TableName: 'course-registrations',
+          FilterExpression: 'email = :email AND courseId = :courseId',
+          ExpressionAttributeValues: {
+            ':email': email,
+            ':courseId': courseId
+          },
+          Limit: 1
+        });
+
+        const courseResult = await docClient.send(courseCheckCommand);
+        
+        return {
+          statusCode: 200,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            success: true,
+            registered: courseResult.Items && courseResult.Items.length > 0
+          })
+        };
+      } else {
+        // Check if user exists in DynamoDB (any course)
+        const scanCommand = new ScanCommand({
+          TableName: 'course-registrations',
+          FilterExpression: 'email = :email',
+          ExpressionAttributeValues: {
+            ':email': email
+          },
+          Limit: 1
+        });
+
+        const result = await docClient.send(scanCommand);
+        
+        return {
+          statusCode: 200,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            success: true,
+            exists: result.Items && result.Items.length > 0
+          })
+        };
+      }
+    }
+
+    // Handle POST request for registration
     const body = JSON.parse(event.body);
     
     // Enhanced validation
@@ -55,6 +130,34 @@ exports.handler = async (event) => {
         body: JSON.stringify({
           success: false,
           message: 'Invalid phone number format'
+        })
+      };
+    }
+
+    // Check if user already registered for this specific course
+    const existingRegistration = new ScanCommand({
+      TableName: 'course-registrations',
+      FilterExpression: 'email = :email AND courseId = :courseId',
+      ExpressionAttributeValues: {
+        ':email': body.email,
+        ':courseId': body.courseId
+      },
+      Limit: 1
+    });
+
+    const existingResult = await docClient.send(existingRegistration);
+    
+    if (existingResult.Items && existingResult.Items.length > 0) {
+      return {
+        statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          success: false,
+          message: 'You are already registered for this course'
         })
       };
     }

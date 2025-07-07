@@ -15,8 +15,8 @@ export default function CourseCard({ course }: CourseCardProps) {
             {course.title}
           </h3>
           {course.status === 'coming-soon' && (
-            <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
-              Coming Soon
+            <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full text-center leading-tight">
+              Coming<br />Soon
             </span>
           )}
         </div>
