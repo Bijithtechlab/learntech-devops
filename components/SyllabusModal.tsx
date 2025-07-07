@@ -49,7 +49,7 @@ export default function SyllabusModal({ isOpen, onClose, syllabus, courseTitle }
                   <h3 className="font-semibold text-gray-900">{section.title}</h3>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-500">
-                      {section.items.length} items
+                      {section.items.length} lessons
                     </span>
                     {expandedSections.has(section.id) ? (
                       <ChevronDown className="h-5 w-5 text-gray-400" />

@@ -76,7 +76,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                       <h3 className="text-xl font-bold text-yellow-800">🎯 Exclusive Internship Opportunity!</h3>
                     </div>
                     <p className="text-gray-700 mb-4">
-                      This course makes you <strong>eligible for our highly selective internship program</strong> - limited to only 2 students! Get real-world experience and direct pathway to employment.
+                      This course makes you <strong>eligible for our highly selective internship program!</strong> Get real-world experience and direct pathway to employment.
                     </p>
                     <Link
                       href="/internship"

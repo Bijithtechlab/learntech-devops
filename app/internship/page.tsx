@@ -46,7 +46,7 @@ export default function InternshipPage() {
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-3xl font-bold text-gray-900 mb-4 flex items-center gap-3">
               <Award className="h-8 w-8 text-blue-600" />
-              What Will You Gain? Unlocking Your Potential
+              Expected Learning Achievements
             </h2>
             <p className="text-lg text-gray-700 mb-4">
               Our internship is not just an extension of your learning; it's your launchpad into a successful career. You will receive comprehensive hands-on training and:

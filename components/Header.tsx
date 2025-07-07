@@ -20,14 +20,14 @@ export default function Header() {
             <Link href="/courses" className="text-gray-700 hover:text-blue-600 font-medium">
               Courses
             </Link>
+            <Link href="/internship" className="text-gray-700 hover:text-blue-600 font-medium">
+              Internship
+            </Link>
             <Link href="/trainers" className="text-gray-700 hover:text-blue-600 font-medium">
               Trainers
             </Link>
             <Link href="/student" className="text-gray-700 hover:text-blue-600 font-medium">
               Student Portal
-            </Link>
-            <Link href="/internship" className="text-gray-700 hover:text-blue-600 font-medium">
-              Internship
             </Link>
           </nav>
 
@@ -60,6 +60,13 @@ export default function Header() {
                 Courses
               </Link>
               <Link 
+                href="/internship" 
+                className="block text-gray-700 hover:text-blue-600 font-medium py-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Internship
+              </Link>
+              <Link 
                 href="/trainers" 
                 className="block text-gray-700 hover:text-blue-600 font-medium py-2"
                 onClick={() => setIsMenuOpen(false)}
@@ -72,13 +79,6 @@ export default function Header() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Student Portal
-              </Link>
-              <Link 
-                href="/internship" 
-                className="block text-gray-700 hover:text-blue-600 font-medium py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Internship
               </Link>
             </nav>
           </div>
