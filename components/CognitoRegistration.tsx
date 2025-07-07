@@ -10,6 +10,7 @@ interface CognitoRegistrationProps {
 
 export default function CognitoRegistration({ courseId, courseName, coursePrice }: CognitoRegistrationProps) {
   const [step, setStep] = useState(1)
+  const [showAlreadyRegistered, setShowAlreadyRegistered] = useState(false)
   const [loading, setLoading] = useState(false)
   const [configReady, setConfigReady] = useState(false)
   const [isExistingUser, setIsExistingUser] = useState(false)
@@ -97,7 +98,10 @@ export default function CognitoRegistration({ courseId, courseName, coursePrice 
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Invalid email format'
     if (!formData.password) newErrors.password = 'Password is required'
     else if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters'
-    // Phone is optional for now
+    if (!formData.phone.trim()) newErrors.phone = 'Phone number is required'
+    else if (!/^[6-9]\d{9}$/.test(formData.phone.replace(/\D/g, ''))) {
+      newErrors.phone = 'Please enter a valid 10-digit Indian mobile number'
+    }
     
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -126,35 +130,83 @@ export default function CognitoRegistration({ courseId, courseName, coursePrice 
 
   const checkCourseRegistration = async () => {
     try {
-      const response = await fetch(`https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/register?email=${formData.email}&courseId=${courseId}`, {
-        method: 'GET'
+      const url = `https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/register`
+      console.log('Checking course registration with URL:', url)
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'checkDuplicate',
+          email: formData.email,
+          courseId: courseId
+        })
       })
+      
+      if (!response.ok) {
+        console.error('API response not ok:', response.status, response.statusText)
+        return false
+      }
+      
       const result = await response.json()
-      return result.registered
+      console.log('Course registration check response:', result)
+      
+      return result.success && result.registered === true
     } catch (error) {
-      return false
+      console.error('Error checking course registration:', error)
+      throw error
     }
   }
 
-  const handleSignUp = async () => {
+  const checkDuplicateRegistration = async () => {
     if (!validateStep1()) return
     
     setLoading(true)
+    setErrors({})
+    
     try {
+      console.log('Checking duplicate registration for:', formData.email, 'courseId:', courseId)
+      
       // Check if user already registered for this specific course
       const alreadyRegistered = await checkCourseRegistration()
+      console.log('Already registered result:', alreadyRegistered)
       
-      if (alreadyRegistered) {
-        setErrors({ general: 'You are already registered for this course.' })
+      if (alreadyRegistered === true) {
+        console.log('User already registered, showing error screen')
+        setShowAlreadyRegistered(true)
+        setLoading(false)
         return
       }
       
       // Check if user already registered for any course
       const userExists = await checkUserExists()
+      console.log('User exists result:', userExists)
       
-      if (userExists) {
-        // Existing user - directly register for course
+      if (userExists === true) {
+        // Existing user - show confirmation and go to step 2
         setIsExistingUser(true)
+      }
+      
+      // Proceed to step 2
+      setStep(2)
+      
+    } catch (error: any) {
+      console.error('Error in checkDuplicateRegistration:', error)
+      setErrors({ general: `Error checking registration: ${error.message}` })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSignUp = async () => {
+    if (!validateStep2()) return
+    
+    setLoading(true)
+    try {
+      if (isExistingUser) {
+        // Existing user - directly register for course
         try {
           await saveRegistrationToDynamoDB()
           setStep(4)
@@ -245,7 +297,7 @@ export default function CognitoRegistration({ courseId, courseName, coursePrice 
           firstName: formData.firstName,
           lastName: formData.lastName,
           email: formData.email,
-          phone: formData.phone || 'Not provided',
+          phone: formData.phone,
           education: formData.education,
           experience: 'Not specified',
           motivation: formData.motivation,
@@ -282,6 +334,36 @@ export default function CognitoRegistration({ courseId, courseName, coursePrice 
     }
   }
 
+  if (showAlreadyRegistered) {
+    return (
+      <div className="text-center">
+        <div className="text-orange-600 mb-4">
+          <svg className="h-16 w-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">Already Registered</h1>
+        <p className="text-lg text-gray-600 mb-6">
+          You've already registered for this course. For further assistance, please contact our team at{' '}
+          <a href="mailto:info@learntechlab.com" className="text-blue-600 hover:text-blue-700 font-semibold">
+            info@learntechlab.com
+          </a>
+        </p>
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+          <p className="text-orange-800">
+            <strong>Need Help?</strong> Our support team is available to assist you with any questions about your existing registration or course access.
+          </p>
+        </div>
+        <button
+          onClick={() => window.location.href = '/courses'}
+          className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+        >
+          Browse Other Courses
+        </button>
+      </div>
+    )
+  }
+
   if (step === 4) {
     return (
       <div className="text-center">
@@ -293,8 +375,8 @@ export default function CognitoRegistration({ courseId, courseName, coursePrice 
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Registration Successful!</h1>
         <p className="text-lg text-gray-600 mb-6">
           {isExistingUser 
-            ? `You have successfully registered for <strong>${courseName}</strong>!`
-            : `Welcome to <strong>${courseName}</strong>! Your account has been created and verified.`
+            ? <>You have successfully registered for <strong>{courseName}</strong>!</>
+            : <>Welcome to <strong>{courseName}</strong>! Your account has been created and verified.</>
           }
         </p>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
@@ -429,7 +511,7 @@ export default function CognitoRegistration({ courseId, courseName, coursePrice 
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Phone Number (Optional)
+              Phone Number *
             </label>
             <div className="relative">
               <Phone className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
@@ -440,25 +522,19 @@ export default function CognitoRegistration({ courseId, courseName, coursePrice 
                 className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                   errors.phone ? 'border-red-500' : 'border-gray-300'
                 }`}
-                placeholder="Enter phone number (optional)"
+                placeholder="Enter 10-digit mobile number"
+                maxLength={10}
               />
             </div>
             {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
           </div>
 
           <button
-            onClick={() => {
-              if (validateStep1()) {
-                if (isExistingUser) {
-                  handleSignUp() // This will directly register for course
-                } else {
-                  setStep(2)
-                }
-              }
-            }}
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+            onClick={checkDuplicateRegistration}
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
-            {isExistingUser ? 'Register for Course' : 'Continue'}
+            {loading ? 'Checking...' : 'Continue'}
           </button>
         </div>
       )}

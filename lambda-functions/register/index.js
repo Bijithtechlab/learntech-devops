@@ -7,6 +7,19 @@ const docClient = DynamoDBDocumentClient.from(client);
 
 exports.handler = async (event) => {
   try {
+    // Handle OPTIONS request for CORS
+    if (event.httpMethod === 'OPTIONS') {
+      return {
+        statusCode: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type',
+          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+        },
+        body: ''
+      };
+    }
+
     // Handle GET request for user existence check
     if (event.httpMethod === 'GET') {
       const email = event.queryStringParameters?.email;
@@ -81,8 +94,51 @@ exports.handler = async (event) => {
       }
     }
 
-    // Handle POST request for registration
+    // Handle POST request for registration or duplicate check
     const body = JSON.parse(event.body);
+    
+    // Handle duplicate check request
+    if (body.action === 'checkDuplicate') {
+      if (!body.email || !body.courseId) {
+        return {
+          statusCode: 400,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            success: false,
+            message: 'Email and courseId are required for duplicate check'
+          })
+        };
+      }
+      
+      const duplicateCheckCommand = new ScanCommand({
+        TableName: 'course-registrations',
+        FilterExpression: 'email = :email AND courseId = :courseId',
+        ExpressionAttributeValues: {
+          ':email': body.email,
+          ':courseId': body.courseId
+        },
+        Limit: 1
+      });
+      
+      const duplicateResult = await docClient.send(duplicateCheckCommand);
+      
+      return {
+        statusCode: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          success: true,
+          registered: duplicateResult.Items && duplicateResult.Items.length > 0
+        })
+      };
+    }
     
     // Enhanced validation
     if (!body.firstName || !body.lastName || !body.email || !body.phone || !body.education || !body.courseId) {
