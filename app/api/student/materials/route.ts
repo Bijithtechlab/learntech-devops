@@ -139,8 +139,19 @@ export async function GET(request: NextRequest) {
       }))
 
     return NextResponse.json({ success: true, sections: sectionsArray })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching student materials:', error)
-    return NextResponse.json({ success: false, message: 'Failed to fetch materials' }, { status: 500 })
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      name: error.name,
+      stack: error.stack
+    })
+    return NextResponse.json({ 
+      success: false, 
+      message: 'Failed to fetch materials',
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    }, { status: 500 })
   }
 }
