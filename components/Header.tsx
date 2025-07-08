@@ -1,10 +1,21 @@
 'use client'
 import { useState } from 'react'
+import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { Menu, X } from 'lucide-react'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const pathname = usePathname()
+  
+  // Hide navigation for student portal and admin pages
+  const isStudentPortal = pathname?.startsWith('/student')
+  const isAdminPage = pathname?.startsWith('/admin')
+  
+  if (isStudentPortal || isAdminPage) {
+    return null
+  }
+  
   return (
     <header className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

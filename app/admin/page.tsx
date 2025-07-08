@@ -3,6 +3,10 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { X } from 'lucide-react'
 import { useUser } from '@/contexts/UserContext'
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
+import { Pie } from 'react-chartjs-2'
+
+ChartJS.register(ArcElement, Tooltip, Legend)
 
 interface Registration {
   id: string
@@ -30,12 +34,8 @@ export default function AdminPage() {
   const { user } = useUser()
 
   useEffect(() => {
-    if (!user) {
-      router.push('/login')
-      return
-    }
     fetchRegistrations()
-  }, [user])
+  }, [])
 
   const fetchRegistrations = async () => {
     try {
@@ -87,18 +87,101 @@ export default function AdminPage() {
     }
   }
 
-  if (loading) {
-    return <div className="p-8">Loading...</div>
+  // Calculate pie chart data
+  const getChartData = () => {
+    const pending = registrations.filter(reg => reg.PaymentStatus === 'pending').length
+    const inProgress = registrations.filter(reg => reg.PaymentStatus === 'in-progress').length
+    const completed = registrations.filter(reg => reg.PaymentStatus === 'completed').length
+
+    return {
+      labels: ['New Requests', 'Discussed Already', 'Payment Completed'],
+      datasets: [
+        {
+          data: [pending, inProgress, completed],
+          backgroundColor: [
+            '#ef4444', // Red for pending
+            '#f59e0b', // Yellow for in-progress
+            '#10b981', // Green for completed
+          ],
+          borderWidth: 2,
+          borderColor: '#ffffff',
+        },
+      ],
+    }
   }
 
-  if (!user) {
-    return null
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'bottom' as const,
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context: any) {
+            const label = context.label || ''
+            const value = context.parsed || 0
+            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0)
+            const percentage = total > 0 ? Math.round((value / total) * 100) : 0
+            return `${label}: ${value} (${percentage}%)`
+          }
+        }
+      }
+    },
+  }
+
+  if (loading) {
+    return <div className="p-8">Loading...</div>
   }
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Course Registrations</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <a
+            href="/admin/course-materials"
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Manage Course Materials
+          </a>
+        </div>
+        
+        {/* Pie Chart */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="lg:col-span-1 bg-white rounded-lg shadow p-6">
+            <h3 className="text-lg font-semibold mb-4">Payment Status Overview</h3>
+            <div className="h-64">
+              <Pie data={getChartData()} options={chartOptions} />
+            </div>
+          </div>
+          
+          <div className="lg:col-span-2 bg-white rounded-lg shadow p-6">
+            <h3 className="text-lg font-semibold mb-4">Status Summary</h3>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-red-50 rounded-lg">
+                <div className="text-2xl font-bold text-red-600">
+                  {registrations.filter(reg => reg.PaymentStatus === 'pending').length}
+                </div>
+                <div className="text-sm text-red-700">New Requests</div>
+              </div>
+              <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                <div className="text-2xl font-bold text-yellow-600">
+                  {registrations.filter(reg => reg.PaymentStatus === 'in-progress').length}
+                </div>
+                <div className="text-sm text-yellow-700">Discussed Already</div>
+              </div>
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">
+                  {registrations.filter(reg => reg.PaymentStatus === 'completed').length}
+                </div>
+                <div className="text-sm text-green-700">Payment Completed</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <h2 className="text-2xl font-semibold mb-6">Course Registrations</h2>
         
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">

@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Course Registration Infrastructure'
+Description: 'LearnTechLab Student Portal Infrastructure'
 
 Resources:
   CourseRegistrationsTable:
@@ -30,15 +30,85 @@ Resources:
         - Key: Application
           Value: course-registration
 
+  StudentProgressTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: student-progress
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: email
+          AttributeType: S
+        - AttributeName: materialId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: email-material-index
+          KeySchema:
+            - AttributeName: email
+              KeyType: HASH
+            - AttributeName: materialId
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: production
+        - Key: Application
+          Value: student-portal
+
+  QuizAttemptsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: quiz-attempts
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: email
+          AttributeType: S
+        - AttributeName: quizId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: email-quiz-index
+          KeySchema:
+            - AttributeName: email
+              KeyType: HASH
+            - AttributeName: quizId
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: production
+        - Key: Application
+          Value: student-portal
+
 Outputs:
-  TableName:
-    Description: 'DynamoDB Table Name'
+  CourseRegistrationsTableName:
+    Description: 'Course Registrations Table Name'
     Value: !Ref CourseRegistrationsTable
     Export:
-      Name: !Sub '${AWS::StackName}-TableName'
+      Name: !Sub '${AWS::StackName}-CourseRegistrationsTableName'
   
-  TableArn:
-    Description: 'DynamoDB Table ARN'
-    Value: !GetAtt CourseRegistrationsTable.Arn
+  StudentProgressTableName:
+    Description: 'Student Progress Table Name'
+    Value: !Ref StudentProgressTable
     Export:
-      Name: !Sub '${AWS::StackName}-TableArn'
+      Name: !Sub '${AWS::StackName}-StudentProgressTableName'
+  
+  QuizAttemptsTableName:
+    Description: 'Quiz Attempts Table Name'
+    Value: !Ref QuizAttemptsTable
+    Export:
+      Name: !Sub '${AWS::StackName}-QuizAttemptsTableName'

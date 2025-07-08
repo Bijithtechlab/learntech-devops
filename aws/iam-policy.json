@@ -21,6 +21,16 @@
     {
       "Effect": "Allow",
       "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:GeneratePresignedUrl"
+      ],
+      "Resource": "arn:aws:s3:::learntechlab-course-materials/*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
         "dynamodb:PutItem",
         "dynamodb:GetItem",
         "dynamodb:UpdateItem",
@@ -29,7 +39,15 @@
       ],
       "Resource": [
         "arn:aws:dynamodb:ap-south-1:*:table/users",
-        "arn:aws:dynamodb:ap-south-1:*:table/course-registrations"
+        "arn:aws:dynamodb:ap-south-1:*:table/course-registrations",
+        "arn:aws:dynamodb:ap-south-1:*:table/student-progress",
+        "arn:aws:dynamodb:ap-south-1:*:table/quiz-attempts",
+        "arn:aws:dynamodb:ap-south-1:*:table/course-materials",
+        "arn:aws:dynamodb:ap-south-1:*:table/quiz-questions",
+        "arn:aws:dynamodb:ap-south-1:*:table/student-progress/index/*",
+        "arn:aws:dynamodb:ap-south-1:*:table/quiz-attempts/index/*",
+        "arn:aws:dynamodb:ap-south-1:*:table/course-materials/index/*",
+        "arn:aws:dynamodb:ap-south-1:*:table/quiz-questions/index/*"
       ]
     }
   ]
