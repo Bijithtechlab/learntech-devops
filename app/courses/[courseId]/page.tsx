@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { getCourseById } from '@/data/courses'
 import { aiDevOpsSyllabus } from '@/data/syllabus'
 import Link from 'next/link'
-import { Clock, Users, Award, CheckCircle, BookOpen, Star } from 'lucide-react'
+import { Clock, Users, Award, CheckCircle, BookOpen, Star, ChevronDown, ChevronUp } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import SyllabusModal from '@/components/SyllabusModal'
 
@@ -15,6 +15,7 @@ interface CourseDetailPageProps {
 
 export default function CourseDetailPage({ params }: CourseDetailPageProps) {
   const [showSyllabus, setShowSyllabus] = useState(false)
+  const [showFullDescription, setShowFullDescription] = useState(false)
   const course = getCourseById(params.courseId)
 
   if (!course) {
@@ -54,9 +55,33 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             <div className="md:col-span-2 min-w-0">
               <h2 className="text-xl font-semibold mb-4">Course Description</h2>
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                {course.description}
-              </p>
+              <div className="text-gray-600 mb-6 leading-relaxed space-y-4">
+                {showFullDescription ? (
+                  // Full description
+                  <>
+                    {course.description.split('\n').map((paragraph, index) => (
+                      <p key={index} className="text-justify" dangerouslySetInnerHTML={{ __html: paragraph }}></p>
+                    ))}
+                    <button 
+                      onClick={() => setShowFullDescription(false)}
+                      className="flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium mt-2"
+                    >
+                      Read Less <ChevronUp className="h-4 w-4" />
+                    </button>
+                  </>
+                ) : (
+                  // Truncated description
+                  <>
+                    <p className="text-justify" dangerouslySetInnerHTML={{ __html: course.description.split('\n')[0] }}></p>
+                    <button 
+                      onClick={() => setShowFullDescription(true)}
+                      className="flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium mt-2"
+                    >
+                      Read More <ChevronDown className="h-4 w-4" />
+                    </button>
+                  </>
+                )}
+              </div>
 
               <h2 className="text-xl font-semibold mb-4">What You'll Learn</h2>
               <ul className="space-y-3 mb-6">
@@ -73,7 +98,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                   <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-lg p-4 sm:p-6 mt-6">
                     <div className="flex items-center gap-3 mb-3">
                       <Award className="h-6 w-6 text-yellow-600" />
-                      <h3 className="text-xl font-bold text-yellow-800">🎯 Exclusive Internship Opportunity!</h3>
+                      <h3 className="text-xl font-bold text-yellow-800">Exclusive Internship Opportunity!</h3>
                     </div>
                     <p className="text-gray-700 mb-4">
                       This course makes you <strong>eligible for our highly selective internship program!</strong> Get real-world experience and direct pathway to employment.
@@ -106,7 +131,6 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                   <div className="text-3xl font-bold text-blue-600 mb-2">
                     ₹{course.price.toLocaleString()}
                   </div>
-                  <p className="text-gray-600">One-time payment</p>
                 </div>
 
                 <div className="space-y-3">
@@ -152,7 +176,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                       </div>
                       <div>
                         <span className="font-medium">Start:</span>
-                        <span className="ml-1">04-Aug-2025</span>
+                        <span className="ml-1">01-Sep-2025</span>
                       </div>
                     </div>
                   </div>

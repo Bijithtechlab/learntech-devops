@@ -1,4 +1,4 @@
-# LearnTechLab - AI Powered SW Development, DevOps & Cloud
+# LearnTechLab - AI Powered Software Development - Cloud, Generative AI, & Vibe Coding
 
 A comprehensive training platform for AI-powered software development, DevOps, and cloud technologies.
 

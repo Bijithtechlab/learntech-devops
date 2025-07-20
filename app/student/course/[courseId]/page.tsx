@@ -163,7 +163,7 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
   }
 
   const courseTitle = params.courseId === 'ai-devops-cloud' 
-    ? 'AI Powered Software Development, DevOps & Cloud' 
+    ? 'AI Powered Software Development - Cloud, Generative AI, & Vibe Coding' 
     : params.courseId
 
   return (

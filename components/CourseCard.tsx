@@ -11,7 +11,7 @@ export default function CourseCard({ course }: CourseCardProps) {
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow h-full flex flex-col">
       <div className="p-6 flex-1 flex flex-col">
         <div className="flex justify-between items-start mb-3">
-          <h3 className="text-xl font-semibold text-gray-900 line-clamp-2">
+          <h3 className="text-lg font-semibold text-gray-900 line-clamp-3 min-h-[4.5rem]">
             {course.title}
           </h3>
           {course.status === 'coming-soon' && (

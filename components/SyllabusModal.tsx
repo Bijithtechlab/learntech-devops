@@ -22,6 +22,15 @@ export default function SyllabusModal({ isOpen, onClose, syllabus, courseTitle }
     }
     setExpandedSections(newExpanded)
   }
+  
+  const expandAll = () => {
+    const allSections = new Set(syllabus.map(section => section.id))
+    setExpandedSections(allSections)
+  }
+  
+  const collapseAll = () => {
+    setExpandedSections(new Set())
+  }
 
   if (!isOpen) return null
 
@@ -33,9 +42,25 @@ export default function SyllabusModal({ isOpen, onClose, syllabus, courseTitle }
             <h2 className="text-2xl font-bold">Course Syllabus</h2>
             <p className="text-blue-100 mt-1">{courseTitle}</p>
           </div>
-          <button onClick={onClose} className="text-white hover:text-blue-200">
-            <X className="h-6 w-6" />
-          </button>
+          <div className="flex items-center gap-4">
+            <div className="flex gap-2">
+              <button 
+                onClick={expandAll} 
+                className="text-sm bg-blue-700 hover:bg-blue-800 px-3 py-1 rounded-md transition-colors"
+              >
+                Expand All
+              </button>
+              <button 
+                onClick={collapseAll} 
+                className="text-sm bg-blue-700 hover:bg-blue-800 px-3 py-1 rounded-md transition-colors"
+              >
+                Collapse All
+              </button>
+            </div>
+            <button onClick={onClose} className="text-white hover:text-blue-200">
+              <X className="h-6 w-6" />
+            </button>
+          </div>
         </div>
 
         <div className="overflow-y-auto max-h-[calc(90vh-120px)] p-6">
@@ -61,21 +86,33 @@ export default function SyllabusModal({ isOpen, onClose, syllabus, courseTitle }
 
                 {expandedSections.has(section.id) && (
                   <div className="border-t border-gray-200 bg-gray-50">
-                    {section.items.map((item) => (
-                      <div key={item.id} className="flex items-center gap-3 p-3 border-b border-gray-100 last:border-b-0">
-                        {item.isQuiz ? (
-                          <FileText className="h-4 w-4 text-orange-500 flex-shrink-0" />
-                        ) : (
-                          <Play className="h-4 w-4 text-blue-500 flex-shrink-0" />
-                        )}
-                        <span className="flex-1 text-gray-700">{item.title}</span>
-                        {item.isQuiz && (
-                          <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">
-                            Quiz
+                    {section.items.map((item) => {
+                      return (
+                        <div 
+                          key={item.id} 
+                          className={`flex items-center gap-3 p-3 border-b border-gray-100 last:border-b-0 ${
+                            !item.isTopic && !item.isQuiz ? 'pl-10' : ''
+                          }`}
+                        >
+                          {item.isQuiz ? (
+                            <FileText className="h-4 w-4 text-orange-500 flex-shrink-0" />
+                          ) : (
+                            <Play className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                          )}
+                          <span className={`flex-1 ${
+                            item.isTopic ? 'font-bold text-gray-900' : 
+                            item.isQuiz ? 'italic text-orange-700' : 'text-gray-700'
+                          }`}>
+                            {item.title}
                           </span>
-                        )}
-                      </div>
-                    ))}
+                          {item.isQuiz && (
+                            <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">
+                              Quiz
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>

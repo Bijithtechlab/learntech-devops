@@ -113,7 +113,7 @@ export default function StudentDashboard() {
                       <div className="flex items-center justify-between mb-3">
                         <div>
                           <h4 className="font-semibold text-gray-900">
-                            {courseId === 'ai-devops-cloud' ? 'AI Powered Software Development, DevOps & Cloud' : courseId}
+                            {courseId === 'ai-devops-cloud' ? 'AI Powered Software Development - Cloud, Generative AI, & Vibe Coding' : courseId}
                           </h4>
                           <p className="text-gray-600 text-sm">{completedLessons} of {totalLessons} lessons completed</p>
                         </div>

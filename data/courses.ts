@@ -14,14 +14,14 @@ export interface Course {
 export const courses: Course[] = [
   {
     id: 'ai-devops-cloud',
-    title: 'AI Powered Software Development, DevOps & Cloud',
-    shortTitle: 'AI DevOps & Cloud',
-    description: 'Master AI-Powered Software Development, DevOps, and Cloud Technologies with comprehensive hands-on training. Become a Future-Ready Engineer.',
-    duration: '3 months',
+    title: 'AI Powered Software Development - Cloud, Generative AI, & Vibe Coding',
+    shortTitle: 'AI, Cloud & GenAI',
+    description: 'This course, "AI Powered Software Development - Cloud, Generative AI, & Vibe Coding," is designed to equip you with a comprehensive skill set for contemporary software development. It covers a wide array of essential topics, starting with <strong>Agile Project Management using Jira</strong>, where you\'ll learn about Agile principles, benefits, processes, and how to effectively use Jira for team-managed projects, issue creation, and configuring Agile boards.\nYou will delve into <strong>Programming with Python</strong>, covering fundamental concepts from variables and operators to functions, data structures, JSON, and YAML. The course also provides a solid foundation in <strong>Git for Version Control</strong>, including installation, repository initialization, committing changes, exploring history, branching, merging, and working with remote repositories like GitHub.\nA significant portion of the course focuses on <strong>AWS Cloud</strong>, introducing you to cloud computing, various AWS services such as EC2, EBS, S3, and databases like DynamoDB. It extensively covers <strong>Generative AI (GenAI)</strong> concepts, <strong>Amazon Bedrock</strong>, <strong>prompt engineering techniques</strong>, and <strong>Amazon Q</strong>. You\'ll also explore the broader landscape of <strong>Artificial Intelligence (AI) and Machine Learning (ML)</strong>, including different learning types, model evaluation, and various AWS Managed AI Services like Amazon Comprehend, Translate, Transcribe, and Rekognition.\nFurthermore, the curriculum includes <strong>Application Development with Next.js</strong>, teaching important concepts like React, components, state, hooks, Next.js structure, routing, and APIs. A key highlight is the section on <strong>Vibe Coding with GitHub Copilot</strong>, demonstrating how this AI-driven assistant can transform your coding experience through code generation, chat interaction, and assistance in various languages like JavaScript, TypeScript, Python, and React, including test writing and data visualization. Finally, you\'ll learn to build <strong>Full-Stack Applications with no-code methods</strong>, covering project requirement documentation, creating Next.js projects, setting up backend authentication, working with DynamoDB, implementing database functionality, and deploying applications using a CI/CD pipeline to AWS Amplify',
+    duration: '4 months',
     price: 14999,
     level: 'Intermediate',
     category: 'Technology',
-    features: ['Live Sessions', 'Hands-on Projects', 'AI Integration', 'Cloud Deployment', 'Career Support'],
+    features: ['Live Sessions', 'Hands-on Projects', 'AI Integration', 'Cloud Deployment'],
     status: 'active'
   },
   {

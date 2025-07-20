@@ -6,7 +6,7 @@ import { UserProvider } from '@/contexts/UserContext'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'LearnTechLab - AI Powered SW Development, DevOps & Cloud: The Future-Ready Engineer',
+  title: 'LearnTechLab - AI Powered Software Development - Cloud, Generative AI, & Vibe Coding: The Future-Ready Engineer',
   description: 'Master AI-Powered Software Development, DevOps, and Cloud Technologies with comprehensive hands-on training',
   appleWebApp: {
     capable: true,

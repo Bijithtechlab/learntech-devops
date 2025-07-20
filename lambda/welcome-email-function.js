@@ -25,7 +25,7 @@ function createEmailTemplate(firstName, lastName, email, password) {
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 30px; text-align: center;">
               <h1 style="margin: 0; font-size: 28px;">Welcome to LearnTechLab!</h1>
-              <p style="margin: 10px 0 0 0; opacity: 0.9;">AI Powered SW Development, DevOps & Cloud Program</p>
+              <p style="margin: 10px 0 0 0; opacity: 0.9;">AI Powered Software Development - Cloud, Generative AI, & Vibe Coding Program</p>
             </div>
             
             <div style="padding: 30px; background: #f8fafc;">
@@ -33,7 +33,7 @@ function createEmailTemplate(firstName, lastName, email, password) {
               
               <p style="color: #475569; line-height: 1.6; margin-bottom: 20px;">
                 Congratulations! Your payment has been confirmed and you now have full access to our comprehensive 
-                AI Powered Software Development, DevOps & Cloud training program.
+                AI Powered Software Development - Cloud, Generative AI, & Vibe Coding training program.
               </p>
               
               <div style="background: white; padding: 25px; border-radius: 10px; border-left: 4px solid #2563eb; margin: 25px 0;">
