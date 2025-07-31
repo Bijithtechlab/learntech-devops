@@ -34,8 +34,6 @@ export default function RegisterPage({ params }: RegisterPageProps) {
             </h1>
             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
               <span>Duration: {course.duration}</span>
-              <span>•</span>
-              <span>Price: ₹{course.price.toLocaleString()}</span>
             </div>
           </div>
 
@@ -43,7 +41,6 @@ export default function RegisterPage({ params }: RegisterPageProps) {
             <CognitoRegistration 
               courseId={course.id}
               courseName={course.title}
-              coursePrice={course.price}
             />
           </div>
         </div>

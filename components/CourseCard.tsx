@@ -40,10 +40,7 @@ export default function CourseCard({ course }: CourseCardProps) {
           </div>
         </div>
         
-        <div className="flex items-center justify-between mt-auto">
-          <div className="text-2xl font-bold text-blue-600">
-            ₹{course.price.toLocaleString()}
-          </div>
+        <div className="flex items-center justify-end mt-auto">
           <div className="flex gap-2">
             <Link
               href={`/courses/${course.id}`}

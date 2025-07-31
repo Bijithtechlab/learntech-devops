@@ -127,11 +127,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
 
             <div className="md:col-span-1 min-w-0">
               <div className="bg-gray-50 rounded-lg p-4 sm:p-6 md:sticky md:top-6">
-                <div className="text-center mb-6">
-                  <div className="text-3xl font-bold text-blue-600 mb-2">
-                    ₹{course.price.toLocaleString()}
-                  </div>
-                </div>
+
 
                 <div className="space-y-3">
                   {course.status === 'active' ? (

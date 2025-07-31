@@ -5,10 +5,9 @@ import { User, Mail, Phone, Lock, GraduationCap, Building, MessageSquare } from 
 interface CognitoRegistrationProps {
   courseId: string
   courseName: string
-  coursePrice: number
 }
 
-export default function CognitoRegistration({ courseId, courseName, coursePrice }: CognitoRegistrationProps) {
+export default function CognitoRegistration({ courseId, courseName }: CognitoRegistrationProps) {
   const [step, setStep] = useState(1)
   const [showAlreadyRegistered, setShowAlreadyRegistered] = useState(false)
   const [loading, setLoading] = useState(false)
