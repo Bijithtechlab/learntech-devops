@@ -1,7 +1,13 @@
+'use client'
 import Link from 'next/link'
 import { Users, Target, Award, Briefcase, Star, CheckCircle, ArrowRight } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
+import { getCourseById } from '@/data/courses'
 
 export default function InternshipPage() {
+  const searchParams = useSearchParams()
+  const courseId = searchParams.get('courseId') || 'ai-devops-cloud'
+  const course = getCourseById(courseId)
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -93,18 +99,18 @@ export default function InternshipPage() {
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg p-8 text-center">
             <h2 className="text-3xl font-bold mb-6">Your Journey Starts Here!</h2>
             <p className="text-lg mb-8 opacity-90">
-              To qualify for this transformative and highly sought-after internship program, your first step is to enroll in and successfully complete our "AI Powered Software Development - Cloud, Generative AI, & Vibe Coding" course. Don't just learn; launch your career with learntechlab.
+              To qualify for this transformative and highly sought-after internship program, your first step is to enroll in and successfully complete our "{course?.title || 'AI Powered Software Development - Cloud, Generative AI, & Vibe Coding'}" course. Don't just learn; launch your career with learntechlab.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/courses/ai-devops-cloud"
+                href={`/courses/${courseId}`}
                 className="inline-flex items-center gap-2 bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
               >
                 View Course Details
                 <ArrowRight className="h-5 w-5" />
               </Link>
               <Link
-                href="/register/ai-devops-cloud"
+                href={`/register/${courseId}`}
                 className="inline-flex items-center gap-2 bg-yellow-500 text-white px-8 py-4 rounded-lg font-semibold hover:bg-yellow-600 transition-colors"
               >
                 Register Now

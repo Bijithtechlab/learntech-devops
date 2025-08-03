@@ -363,3 +363,146 @@ export const aiDevOpsSyllabus: SyllabusSection[] = [
     ]
   }
 ]
+
+export const smartCodingSyllabus: SyllabusSection[] = [
+  {
+    id: 'section-1',
+    title: 'Section 1: Introduction',
+    items: [
+      { id: '1-1', title: 'Introduction To Course' },
+      { id: '1-2', title: 'Program Considerations' },
+      { id: '1-3', title: 'Tech Stack' },
+      { id: '1-4', title: 'Coursework' },
+      { id: '1-5', title: 'LLM Overview' },
+      { id: '1-6', title: 'App Types' },
+      { id: '1-7', title: 'Development Environment' },
+      { id: '1-8', title: 'Languages & Frameworks' },
+      { id: '1-9', title: 'Front End vs Back End' },
+      { id: '1-10', title: 'Front End Overview' },
+      { id: '1-11', title: 'Back End Overview' },
+      { id: '1-12', title: 'Advanced Overview' },
+      { id: '1-13', title: 'Key Considerations' },
+      { id: 'quiz-1', title: 'Section 1: Quiz', isQuiz: true }
+    ]
+  },
+  {
+    id: 'section-2',
+    title: 'Section 2: Web development Fundamentals',
+    items: [
+      { id: '2-1', title: 'Web Dev Fundamentals Overview' },
+      { id: '2-2', title: 'HTML, CSS & JavaScript Overview' },
+      { id: '2-3', title: 'HTML Detailed Overview' },
+      { id: '2-4', title: 'CSS Detailed Overview' },
+      { id: '2-5', title: 'JavaScript Detailed Overview' },
+      { id: '2-6', title: 'Advanced JavaScript' },
+      { id: 'quiz-2', title: 'Section 2: Quiz', isQuiz: true },
+      { id: 'assessment-2', title: 'Section 2: Assessment', isQuiz: true }
+    ]
+  },
+  {
+    id: 'section-3',
+    title: 'Section 3: Vibe Coding - NextJS Application - Important things to know',
+    items: [
+      { id: '3-1', title: 'Tech Stack Overview' },
+      { id: '3-2', title: 'Language (TypeScript)' },
+      { id: '3-3', title: 'React Overview' },
+      { id: '3-4', title: 'Components Overview' },
+      { id: '3-5', title: 'Props Overview' },
+      { id: '3-6', title: 'State Overview' },
+      { id: '3-7', title: 'Hooks Overview' },
+      { id: '3-8', title: 'React events' },
+      { id: '3-9', title: 'NextJS Overview' },
+      { id: '3-10', title: 'NextJS Structure' },
+      { id: '3-11', title: 'NextJS Routing' },
+      { id: '3-12', title: 'NextJS Structure Example' },
+      { id: '3-13', title: 'NextJS Default Files' },
+      { id: '3-14', title: 'APIs Overview' },
+      { id: '3-15', title: 'Async / Await' },
+      { id: '3-16', title: 'API Endpoints' },
+      { id: '3-17', title: 'API Workflow' },
+      { id: '3-18', title: 'API Conclusion' },
+      { id: '3-19', title: 'Common AI Errors' },
+      { id: '3-20', title: 'Error States' },
+      { id: '3-21', title: 'Debugging Workflow' },
+      { id: 'quiz-3', title: 'Section 3: Quiz', isQuiz: true },
+      { id: 'assessment-3', title: 'Section 3: Assessment', isQuiz: true }
+    ]
+  },
+  {
+    id: 'section-4',
+    title: 'Section 4: Git Version Control',
+    items: [
+      { id: '4-1', title: 'Git Overview and Version Control' },
+      { id: '4-2', title: 'Installing Git' },
+      { id: '4-3', title: 'What to do if you can\'t rename "master" branch to "main"' },
+      { id: '4-4', title: 'Initializing new Git Repository' },
+      { id: '4-5', title: 'Adding changes to the Staging Area' },
+      { id: '4-6', title: 'Committing changes' },
+      { id: '4-7', title: 'Exploring commits history' },
+      { id: '4-8', title: 'Basic Git Commands' },
+      { id: '4-9', title: 'Checking out commits and branches' },
+      { id: '4-10', title: 'File tracking statuses in Git' },
+      { id: '4-11', title: 'Staging and Committing changes using one command' },
+      { id: 'quiz-4', title: 'Section 4: Quiz', isQuiz: true },
+      { id: 'assessment-4', title: 'Section 4: Assessment', isQuiz: true }
+    ]
+  },
+  {
+    id: 'section-5',
+    title: 'Section 5: Vibe Coding - Building Full-Stack application without coding knowledge',
+    items: [
+      { id: '5-1', title: 'Building SaaS Workflow' },
+      { id: '5-2', title: 'Digital Notice Board - Objective: Build a simple web application using Next.js and Supabase that allows admin users to post notices and students to view them.' },
+      { id: '5-3', title: 'Creating Project Requirement Document (PRD) with the help of AI' },
+      { id: '5-4', title: 'Creating NextJS Project' },
+      { id: '5-5', title: 'Create Admin login via email' },
+      { id: '5-6', title: 'Setting Up Supabase' },
+      { id: '5-7', title: 'Supabase Authentication Settings' },
+      { id: '5-8', title: 'Creating Data Table Structure' },
+      { id: '5-9', title: 'Supabase Notice Board Database' },
+      { id: '5-10', title: 'Supabase Users and Notice Data Table' },
+      { id: '5-11', title: 'Initial Supabase Setup' },
+      { id: '5-12', title: 'Supabase API Keys' },
+      { id: '5-13', title: 'Testing Supabase Connection' },
+      { id: '5-14', title: 'Supabase Authentication' },
+      { id: '5-15', title: 'Testing Sign Up / Login' },
+      { id: '5-16', title: 'Build Admin Functions: Simple admin login (via email), Post a new notice (title, content, created_at), View list of all posted notices' },
+      { id: '5-17', title: 'Build Student Functions:- Student Functions, View all notices (sorted by latest), Each notice shows title, content, date & Responsive UI (basic Tailwind CSS).' },
+      { id: '5-18', title: 'Adding Database Functionality' },
+      { id: '5-19', title: 'Debugging Database' },
+      { id: '5-20', title: 'Test Every functionality' },
+      { id: '5-21', title: 'Implementing CRUD (Create, Read, Update, Delete) functionality in Admin profile' },
+      { id: '5-22', title: 'Implement sort functionality' },
+      { id: '5-23', title: 'Implement Search functionality -Search by keyword, date/category' },
+      { id: '5-24', title: 'Loading States' },
+      { id: '5-25', title: 'How to debug issues' },
+      { id: '5-26', title: 'Troubleshooting Features' },
+      { id: 'quiz-5', title: 'Section 5: Quiz', isQuiz: true },
+      { id: 'assessment-5', title: 'Section 5: Assessment', isQuiz: true }
+    ]
+  },
+  {
+    id: 'section-6',
+    title: 'Section 6: Deployment and access the application',
+    items: [
+      { id: '6-1', title: 'Setup CI/CD Pipeline' },
+      { id: '6-2', title: 'Deploying App' }
+    ]
+  },
+  {
+    id: 'section-7',
+    title: 'Section 7: Final assessment',
+    items: [
+      { id: '7-1', title: 'Each Student to enhance the Digital Notice Board by implementing below functionalities' },
+      { id: '7-2', title: '1. File Attachments: Allow notices to include PDF/image uploads (Supabase Storage)' },
+      { id: '7-3', title: '2. Categories: Filter by category (e.g., Events, Exams, Placement)' },
+      { id: '7-4', title: '3. Notice Expiry: Add expiry date to auto-hide old notices' },
+      { id: '7-5', title: '4. User Roles: Role-based access: restrict post/delete to Admins' },
+      { id: '7-6', title: '5. Notifications: Email alert or in-app toast for new notice' },
+      { id: '7-7', title: '6. Dashboard: Admin and student dashboards with metrics' },
+      { id: '7-8', title: '7. Dark Mode: Toggle light/dark theme (fun UI task)' },
+      { id: '7-9', title: '8. Install as a Mobile App in your mobile phone and share the screenshot - (Use Progressive Web App - PWA features)' },
+      { id: '7-10', title: '9. Upload the project in your Github repository and share the path for assessment' }
+    ]
+  }
+]
