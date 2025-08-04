@@ -1,0 +1,9 @@
+{
+  "name": "student-materials-lambda",
+  "version": "1.0.0",
+  "description": "Lambda function to fetch student course materials",
+  "main": "index.js",
+  "dependencies": {
+    "aws-sdk": "^2.1692.0"
+  }
+}
