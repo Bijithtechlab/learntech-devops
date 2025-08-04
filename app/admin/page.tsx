@@ -11,7 +11,7 @@ export default function AdminPage() {
           <h2 className="text-2xl font-semibold mb-4">Welcome to <span className="text-gray-900">learn</span><span className="text-blue-600">techlab</span> <span className="text-gray-700">LMS</span></h2>
           <p className="text-gray-600 mb-6">Learning Management System - Manage your courses, materials, and registrations from here.</p>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
               <h3 className="text-lg font-semibold text-purple-800 mb-2">Course Registrations</h3>
               <p className="text-purple-600 text-sm mb-4">View and manage student registrations</p>
@@ -20,6 +20,17 @@ export default function AdminPage() {
                 className="inline-block bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition-colors"
               >
                 View Registrations
+              </a>
+            </div>
+            
+            <div className="bg-orange-50 p-6 rounded-lg border border-orange-200">
+              <h3 className="text-lg font-semibold text-orange-800 mb-2">Student Progress</h3>
+              <p className="text-orange-600 text-sm mb-4">Track student progress and quiz scores</p>
+              <a
+                href="/admin/StudentProgress"
+                className="inline-block bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 transition-colors"
+              >
+                View Progress
               </a>
             </div>
             

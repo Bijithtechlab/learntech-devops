@@ -6,6 +6,13 @@ const dynamodb = new AWS.DynamoDB.DocumentClient();
 
 exports.handler = async (event) => {
   try {
+    const path = event.path || event.resource;
+    
+    // Admin endpoint to get all students progress
+    if (path && path.includes('admin-student-progress')) {
+      return await getAdminStudentProgress();
+    }
+    
     const { email, courseId } = event.queryStringParameters || {};
 
     if (!email || !courseId) {
@@ -30,16 +37,17 @@ exports.handler = async (event) => {
     const completedMaterials = progressResult.Items || [];
     const completedCount = completedMaterials.length;
 
-    // Get total materials for the course
+    // Get total materials for the course (PDFs + Quizzes)
     const materialsParams = {
       TableName: 'course-materials',
-      FilterExpression: 'courseId = :courseId AND #type = :type',
+      FilterExpression: 'courseId = :courseId AND (#type = :pdf OR #type = :quiz)',
       ExpressionAttributeNames: {
         '#type': 'type'
       },
       ExpressionAttributeValues: {
         ':courseId': courseId,
-        ':type': 'pdf'
+        ':pdf': 'pdf',
+        ':quiz': 'quiz'
       }
     };
 
@@ -77,3 +85,36 @@ exports.handler = async (event) => {
     };
   }
 };
+
+// Get all students progress for admin from summary table
+async function getAdminStudentProgress() {
+  try {
+    // Get all progress summaries
+    const summariesResult = await dynamodb.scan({
+      TableName: 'student-progress-summary'
+    }).promise();
+    
+    const students = summariesResult.Items || [];
+    
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        success: true, 
+        students: students
+      })
+    };
+    
+  } catch (error) {
+    console.error('Error fetching admin student progress:', error);
+    return {
+      statusCode: 500,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        success: false, 
+        error: 'Failed to fetch admin student progress',
+        message: error.message 
+      })
+    };
+  }
+}

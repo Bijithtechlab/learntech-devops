@@ -1,0 +1,9 @@
+{
+  "name": "progress-calculator",
+  "version": "1.0.0",
+  "description": "Lambda function to calculate and update student progress",
+  "main": "index.js",
+  "dependencies": {
+    "aws-sdk": "^2.1692.0"
+  }
+}

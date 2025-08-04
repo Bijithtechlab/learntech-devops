@@ -18,6 +18,24 @@ export async function POST(request: NextRequest) {
       throw new Error(data.error || 'Lambda function failed')
     }
 
+    // Trigger progress update after quiz submission
+    if (data.success && body.email && body.quizId) {
+      try {
+        const quizResponse = await fetch(`https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/student-quiz/${body.quizId}`)
+        const quizData = await quizResponse.json()
+        
+        if (quizData.success && quizData.quiz && quizData.quiz.courseId) {
+          await fetch('/api/student/progress', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: body.email, courseId: quizData.quiz.courseId })
+          })
+        }
+      } catch (error) {
+        console.error('Error updating progress after quiz:', error)
+      }
+    }
+
     return NextResponse.json(data)
   } catch (error: any) {
     console.error('Error calling quiz attempt Lambda:', error)

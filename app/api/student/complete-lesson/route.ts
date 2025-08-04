@@ -19,6 +19,19 @@ export async function POST(request: NextRequest) {
       throw new Error(data.error || 'Lambda function failed')
     }
 
+    // Trigger progress update
+    if (data.success && body.email && body.courseId) {
+      try {
+        await fetch('/api/student/progress', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: body.email, courseId: body.courseId })
+        })
+      } catch (error) {
+        console.error('Error updating progress:', error)
+      }
+    }
+
     return NextResponse.json(data)
   } catch (error: any) {
     console.error('Error calling complete-lesson Lambda:', error)

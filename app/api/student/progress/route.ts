@@ -30,3 +30,31 @@ export async function GET(request: NextRequest) {
     }, { status: 500 })
   }
 }
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { email, courseId } = body
+
+    if (!email || !courseId) {
+      return NextResponse.json({ success: false, error: 'Missing email or courseId' }, { status: 400 })
+    }
+
+    // Trigger progress calculator
+    const response = await fetch('https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/progress-calculator', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, courseId })
+    })
+
+    const data = await response.json()
+    return NextResponse.json(data)
+  } catch (error: any) {
+    console.error('Error triggering progress update:', error)
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Failed to update progress',
+      message: error.message
+    }, { status: 500 })
+  }
+}
