@@ -134,6 +134,7 @@ export async function GET(request: NextRequest) {
     const sectionsArray = Object.values(sections)
       .sort((a: any, b: any) => a.order - b.order)
 
+    console.log('Final sections array:', JSON.stringify(sectionsArray, null, 2))
     return NextResponse.json({ success: true, sections: sectionsArray })
   } catch (error: any) {
     console.error('Error fetching student materials:', error)
