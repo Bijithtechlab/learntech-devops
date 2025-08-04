@@ -143,9 +143,20 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: true, sections: sectionsArray })
   } catch (error: any) {
     console.error('Error fetching student materials:', error)
+    console.error('Error name:', error.name)
+    console.error('Error message:', error.message)
+    console.error('Error stack:', error.stack)
+    console.error('Environment check:', {
+      hasCustomKey: !!process.env.CUSTOM_AWS_ACCESS_KEY_ID,
+      hasCustomSecret: !!process.env.CUSTOM_AWS_SECRET_ACCESS_KEY,
+      region: 'ap-south-1',
+      courseId: new URL(request.url).searchParams.get('courseId')
+    })
     return NextResponse.json({ 
       success: false, 
-      message: 'Failed to fetch materials'
+      message: 'Failed to fetch materials',
+      error: error.message,
+      errorType: error.name
     }, { status: 500 })
   }
 }
