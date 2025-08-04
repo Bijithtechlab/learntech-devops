@@ -5,10 +5,12 @@ import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 const dynamoClient = new DynamoDBClient({ 
   region: 'ap-south-1',
-  credentials: process.env.CUSTOM_AWS_ACCESS_KEY_ID ? {
-    accessKeyId: process.env.CUSTOM_AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.CUSTOM_AWS_SECRET_ACCESS_KEY!
-  } : undefined
+  ...(process.env.CUSTOM_AWS_ACCESS_KEY_ID ? {
+    credentials: {
+      accessKeyId: process.env.CUSTOM_AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.CUSTOM_AWS_SECRET_ACCESS_KEY!
+    }
+  } : {})
 })
 const docClient = DynamoDBDocumentClient.from(dynamoClient)
 
