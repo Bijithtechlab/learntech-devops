@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb'
 
-const dynamoClient = new DynamoDBClient({ region: 'ap-south-1' })
-const docClient = DynamoDBDocumentClient.from(dynamoClient)
+const LAMBDA_API_URL = 'https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/student-progress'
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,58 +9,24 @@ export async function GET(request: NextRequest) {
     const courseId = searchParams.get('courseId')
 
     if (!email || !courseId) {
-      return NextResponse.json({ success: false, message: 'Email and courseId required' }, { status: 400 })
+      return NextResponse.json({ success: false, error: 'Missing email or courseId' }, { status: 400 })
     }
 
-    // Get all materials for the course
-    const materialsCommand = new ScanCommand({
-      TableName: 'course-materials',
-      FilterExpression: 'courseId = :courseId AND #type = :type',
-      ExpressionAttributeNames: { '#type': 'type' },
-      ExpressionAttributeValues: { 
-        ':courseId': courseId,
-        ':type': 'pdf'
-      }
-    })
+    // Call Lambda function via API Gateway
+    const response = await fetch(`${LAMBDA_API_URL}?email=${encodeURIComponent(email)}&courseId=${encodeURIComponent(courseId)}`)
+    const data = await response.json()
 
-    const materialsResult = await docClient.send(materialsCommand)
-    const totalMaterials = materialsResult.Items?.length || 0
+    if (!response.ok) {
+      throw new Error(data.error || 'Lambda function failed')
+    }
 
-    // Get completed materials for the user using GSI
-    const completedCommand = new ScanCommand({
-      TableName: 'student-progress',
-      FilterExpression: 'email = :email',
-      ExpressionAttributeValues: { 
-        ':email': email
-      }
-    })
-
-    const completedResult = await docClient.send(completedCommand)
-    
-    // Filter completed materials for this specific course
-    const courseCompletedMaterials = completedResult.Items?.filter(item => {
-      // Check if the materialId exists in the course materials
-      return materialsResult.Items?.some(material => material.id === item.materialId)
-    }) || []
-    
-    const completedMaterials = courseCompletedMaterials.length
-
-    const progressPercentage = totalMaterials > 0 ? Math.round((completedMaterials / totalMaterials) * 100) : 0
-
-    return NextResponse.json({
-      success: true,
-      progress: {
-        courseId,
-        totalLessons: totalMaterials,
-        completedLessons: completedMaterials,
-        progressPercentage
-      }
-    })
-  } catch (error) {
-    console.error('Error fetching progress:', error)
-    return NextResponse.json(
-      { success: false, message: 'Failed to fetch progress' },
-      { status: 500 }
-    )
+    return NextResponse.json(data)
+  } catch (error: any) {
+    console.error('Error calling student-progress Lambda:', error)
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Failed to fetch progress',
+      message: error.message
+    }, { status: 500 })
   }
 }
