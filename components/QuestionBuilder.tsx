@@ -5,10 +5,11 @@ interface QuestionBuilderProps {
   index: number
   onUpdate: (index: number, field: string, value: any) => void
   onUpdateOption: (questionIndex: number, optionIndex: number, value: string) => void
+  onUpdateQuestion: (index: number, updatedQuestion: any) => void
   onRemove: (index: number) => void
 }
 
-export default function QuestionBuilder({ question, index, onUpdate, onUpdateOption, onRemove }: QuestionBuilderProps) {
+export default function QuestionBuilder({ question, index, onUpdate, onUpdateOption, onUpdateQuestion, onRemove }: QuestionBuilderProps) {
   const questionTypes = [
     { value: 'multiple-choice', label: 'Multiple Choice' },
     { value: 'true-false', label: 'True/False' },
@@ -17,14 +18,33 @@ export default function QuestionBuilder({ question, index, onUpdate, onUpdateOpt
   ]
 
   const handleTypeChange = (newType: string) => {
-    onUpdate(index, 'type', newType)
+    let newOptions = []
+    let newCorrectAnswer: any = 0
+    
     if (newType === 'true-false') {
-      onUpdate(index, 'options', ['True', 'False'])
+      newOptions = ['True', 'False']
+      newCorrectAnswer = 0
     } else if (newType === 'multiple-choice') {
-      onUpdate(index, 'options', ['', '', '', ''])
-    } else {
-      onUpdate(index, 'options', [])
+      newOptions = ['', '', '', '']
+      newCorrectAnswer = 0
+    } else if (newType === 'fill-blank') {
+      newOptions = []
+      newCorrectAnswer = ''
+    } else if (newType === 'essay') {
+      newOptions = []
+      newCorrectAnswer = ''
     }
+    
+    // Update all fields at once
+    const updated = {
+      ...question,
+      type: newType,
+      options: newOptions,
+      correctAnswer: newCorrectAnswer
+    }
+    
+    // Call a new function to update the entire question
+    onUpdateQuestion(index, updated)
   }
 
   return (
@@ -45,7 +65,7 @@ export default function QuestionBuilder({ question, index, onUpdate, onUpdateOpt
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Question Type</label>
             <select
-              value={question.type}
+              value={question.type || 'multiple-choice'}
               onChange={(e) => handleTypeChange(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
@@ -53,6 +73,7 @@ export default function QuestionBuilder({ question, index, onUpdate, onUpdateOpt
                 <option key={type.value} value={type.value}>{type.label}</option>
               ))}
             </select>
+
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Points</label>
@@ -79,9 +100,11 @@ export default function QuestionBuilder({ question, index, onUpdate, onUpdateOpt
 
         {(question.type === 'multiple-choice' || question.type === 'true-false') && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Options</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Options (Select the correct answer)
+            </label>
             <div className="space-y-2">
-              {question.options.map((option: string, optionIndex: number) => (
+              {question.options?.map((option: string, optionIndex: number) => (
                 <div key={optionIndex} className="flex items-center gap-2">
                   <input
                     type="radio"
@@ -90,6 +113,9 @@ export default function QuestionBuilder({ question, index, onUpdate, onUpdateOpt
                     onChange={() => onUpdate(index, 'correctAnswer', optionIndex)}
                     className="text-green-600"
                   />
+                  <span className="text-sm font-medium text-green-600 min-w-[60px]">
+                    {question.correctAnswer === optionIndex ? 'Correct' : ''}
+                  </span>
                   <input
                     type="text"
                     value={option}
@@ -101,19 +127,28 @@ export default function QuestionBuilder({ question, index, onUpdate, onUpdateOpt
                 </div>
               ))}
             </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Click the radio button next to the correct answer
+            </p>
           </div>
         )}
 
         {question.type === 'fill-blank' && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Correct Answer</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Correct Answer *
+            </label>
             <input
               type="text"
               value={question.correctAnswer || ''}
               onChange={(e) => onUpdate(index, 'correctAnswer', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter the correct answer"
+              placeholder="Enter the correct answer (case-insensitive)"
+              required
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Students will need to type this exact answer (case doesn't matter)
+            </p>
           </div>
         )}
 

@@ -1,53 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, PutCommand, ScanCommand } from '@aws-sdk/lib-dynamodb'
-import { randomUUID } from 'crypto'
 
-const client = new DynamoDBClient({ region: 'ap-south-1' })
-const docClient = DynamoDBDocumentClient.from(client)
+const LAMBDA_API_URL = 'https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/quiz-attempt'
 
 export async function POST(request: NextRequest) {
   try {
-    const { quizId, email, answers, score, passed, timeSpent } = await request.json()
+    const body = await request.json()
 
-    if (!quizId || !email || !answers) {
-      return NextResponse.json(
-        { success: false, message: 'Missing required fields' },
-        { status: 400 }
-      )
-    }
-
-    const quizAttempt = {
-      id: randomUUID(),
-      quizId,
-      email,
-      answers,
-      score: score || 0,
-      passed: passed || false,
-      timeSpent: timeSpent || 0,
-      completedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString()
-    }
-
-    const command = new PutCommand({
-      TableName: 'quiz-attempts',
-      Item: quizAttempt
+    const response = await fetch(LAMBDA_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
     })
 
-    await docClient.send(command)
+    const data = await response.json()
 
-    return NextResponse.json({
-      success: true,
-      message: 'Quiz attempt saved successfully',
-      attemptId: quizAttempt.id
-    })
+    if (!response.ok) {
+      throw new Error(data.error || 'Lambda function failed')
+    }
 
-  } catch (error) {
-    console.error('Error saving quiz attempt:', error)
-    return NextResponse.json(
-      { success: false, message: 'Failed to save quiz attempt' },
-      { status: 500 }
-    )
+    return NextResponse.json(data)
+  } catch (error: any) {
+    console.error('Error calling quiz attempt Lambda:', error)
+    return NextResponse.json({ 
+      success: false, 
+      message: 'Failed to save quiz attempt',
+      error: error.message
+    }, { status: 500 })
   }
 }
 
@@ -57,39 +35,23 @@ export async function GET(request: NextRequest) {
     const email = searchParams.get('email')
     const quizId = searchParams.get('quizId')
 
-    if (!email) {
-      return NextResponse.json(
-        { success: false, message: 'Email is required' },
-        { status: 400 }
-      )
+    let url = `${LAMBDA_API_URL}?email=${email}`
+    if (quizId) url += `&quizId=${quizId}`
+
+    const response = await fetch(url)
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Lambda function failed')
     }
 
-    let filterExpression = 'email = :email'
-    let expressionAttributeValues: any = { ':email': email }
-
-    if (quizId) {
-      filterExpression += ' AND quizId = :quizId'
-      expressionAttributeValues[':quizId'] = quizId
-    }
-
-    const command = new ScanCommand({
-      TableName: 'quiz-attempts',
-      FilterExpression: filterExpression,
-      ExpressionAttributeValues: expressionAttributeValues
-    })
-
-    const result = await docClient.send(command)
-
-    return NextResponse.json({
-      success: true,
-      attempts: result.Items || []
-    })
-
-  } catch (error) {
-    console.error('Error fetching quiz attempts:', error)
-    return NextResponse.json(
-      { success: false, message: 'Failed to fetch quiz attempts' },
-      { status: 500 }
-    )
+    return NextResponse.json(data)
+  } catch (error: any) {
+    console.error('Error calling quiz attempt Lambda:', error)
+    return NextResponse.json({ 
+      success: false, 
+      message: 'Failed to fetch quiz attempts',
+      error: error.message
+    }, { status: 500 })
   }
 }

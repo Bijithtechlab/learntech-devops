@@ -1,80 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, PutCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb'
-import { randomUUID } from 'crypto'
 
-const dynamoClient = new DynamoDBClient({ region: 'ap-south-1' })
-const docClient = DynamoDBDocumentClient.from(dynamoClient)
+const LAMBDA_API_URL = 'https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/admin-quizzes'
 
-// POST - Create quiz
 export async function POST(request: NextRequest) {
   try {
-    const { 
-      courseId, 
-      sectionId, 
-      title, 
-      description, 
-      order, 
-      timeLimit, 
-      passingScore, 
-      maxAttempts, 
-      randomizeQuestions, 
-      isLocked, 
-      questions, 
-      totalPoints 
-    } = await request.json()
+    const body = await request.json()
 
-    const quiz = {
-      id: randomUUID(),
-      courseId,
-      sectionId,
-      title,
-      description,
-      order,
-      timeLimit,
-      passingScore,
-      maxAttempts,
-      randomizeQuestions,
-      isLocked,
-      questions,
-      totalPoints,
-      type: 'quiz',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
-
-    const command = new PutCommand({
-      TableName: 'course-materials',
-      Item: quiz
+    const response = await fetch(LAMBDA_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
     })
 
-    await docClient.send(command)
-    return NextResponse.json({ success: true, quiz })
-  } catch (error) {
-    console.error('Error creating quiz:', error)
-    return NextResponse.json({ success: false, message: 'Failed to create quiz' }, { status: 500 })
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Lambda function failed')
+    }
+
+    return NextResponse.json(data)
+  } catch (error: any) {
+    console.error('Error calling quiz Lambda:', error)
+    return NextResponse.json({ 
+      success: false, 
+      message: 'Failed to create quiz',
+      error: error.message
+    }, { status: 500 })
   }
 }
 
-// DELETE - Remove quiz
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const quizId = searchParams.get('id')
+    const id = searchParams.get('id')
 
-    if (!quizId) {
+    if (!id) {
       return NextResponse.json({ success: false, message: 'Quiz ID required' }, { status: 400 })
     }
 
-    const deleteCommand = new DeleteCommand({
-      TableName: 'course-materials',
-      Key: { id: quizId }
+    const response = await fetch(`${LAMBDA_API_URL}?id=${id}`, {
+      method: 'DELETE'
     })
 
-    await docClient.send(deleteCommand)
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Error deleting quiz:', error)
-    return NextResponse.json({ success: false, message: 'Failed to delete quiz' }, { status: 500 })
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Lambda function failed')
+    }
+
+    return NextResponse.json(data)
+  } catch (error: any) {
+    console.error('Error calling quiz Lambda:', error)
+    return NextResponse.json({ 
+      success: false, 
+      message: 'Failed to delete quiz',
+      error: error.message
+    }, { status: 500 })
   }
 }

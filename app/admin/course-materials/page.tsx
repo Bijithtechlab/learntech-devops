@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { Plus, Upload, Edit, Trash2, FileText, HelpCircle, X } from 'lucide-react'
 import QuestionBuilder from '@/components/QuestionBuilder'
 
+
 interface Material {
   id: string
   title: string
@@ -56,6 +57,7 @@ export default function CourseManagementPage() {
   const [showEditSubSection, setShowEditSubSection] = useState<SubSection | null>(null)
   const [showAddMaterial, setShowAddMaterial] = useState<string | null>(null)
   const [showAddQuiz, setShowAddQuiz] = useState<string | null>(null)
+
 
   useEffect(() => {
     fetchCourses()
@@ -335,6 +337,7 @@ export default function CourseManagementPage() {
                         }`}>
                           {quiz.isLocked ? 'Locked' : 'Unlocked'}
                         </span>
+
                         <button
                           onClick={() => handleDeleteMaterial(quiz.id)}
                           className="text-red-600 hover:text-red-800 p-1"
@@ -444,6 +447,8 @@ export default function CourseManagementPage() {
             }}
           />
         )}
+
+
       </div>
     </div>
   )
@@ -1028,7 +1033,7 @@ function AddQuizModal({ courseId, sectionId, onClose, onSuccess }: {
 
   const addQuestion = () => {
     const newQuestion = {
-      id: Date.now().toString(),
+      id: `new-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       question: '',
       type: 'multiple-choice',
       options: ['', '', '', ''],
@@ -1042,6 +1047,12 @@ function AddQuizModal({ courseId, sectionId, onClose, onSuccess }: {
   const updateQuestion = (index: number, field: string, value: any) => {
     const updated = [...questions]
     updated[index] = { ...updated[index], [field]: value }
+    setQuestions(updated)
+  }
+
+  const updateEntireQuestion = (index: number, updatedQuestion: any) => {
+    const updated = [...questions]
+    updated[index] = updatedQuestion
     setQuestions(updated)
   }
 
@@ -1226,6 +1237,7 @@ function AddQuizModal({ courseId, sectionId, onClose, onSuccess }: {
                   index={index}
                   onUpdate={updateQuestion}
                   onUpdateOption={updateOption}
+                  onUpdateQuestion={updateEntireQuestion}
                   onRemove={removeQuestion}
                 />
               ))}

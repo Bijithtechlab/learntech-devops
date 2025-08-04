@@ -15,7 +15,7 @@ function QuizPageContent({ params }: QuizPageProps) {
   const { user } = useStudentAuth()
   const [quiz, setQuiz] = useState<any>(null)
   const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [answers, setAnswers] = useState<number[]>([])
+  const [answers, setAnswers] = useState<any[]>([])
   const [timeLeft, setTimeLeft] = useState(0)
   const [quizStarted, setQuizStarted] = useState(false)
   const [quizCompleted, setQuizCompleted] = useState(false)
@@ -34,7 +34,16 @@ function QuizPageContent({ params }: QuizPageProps) {
       
       if (data.success && data.quiz) {
         setQuiz(data.quiz)
-        setAnswers(new Array(data.quiz.questions.length).fill(-1))
+        // Initialize answers based on question type
+        const initialAnswers = data.quiz.questions.map((q: any) => {
+          if (q.type === 'multiple-choice' || q.type === 'true-false') return -1
+          if (q.type === 'fill-blank' || q.type === 'essay') return ''
+          // Fallback: detect by content
+          const isFillInBlank = q.question?.includes('________')
+          if (isFillInBlank) return ''
+          return -1
+        })
+        setAnswers(initialAnswers)
         if (data.quiz.timeLimit) {
           setTimeLeft(data.quiz.timeLimit * 60) // Convert to seconds
         }
@@ -66,9 +75,9 @@ function QuizPageContent({ params }: QuizPageProps) {
     setQuizStarted(true)
   }
 
-  const handleAnswerSelect = (answerIndex: number) => {
+  const handleAnswerSelect = (answer: any) => {
     const newAnswers = [...answers]
-    newAnswers[currentQuestion] = answerIndex
+    newAnswers[currentQuestion] = answer
     setAnswers(newAnswers)
   }
 
@@ -87,12 +96,52 @@ function QuizPageContent({ params }: QuizPageProps) {
   const calculateScore = () => {
     if (!quiz) return 0
     let correct = 0
+    let gradableQuestions = 0
+    
     quiz.questions.forEach((question, index) => {
-      if (answers[index] === question.correctAnswer) {
-        correct++
+      const userAnswer = answers[index]
+      
+      // Skip essay questions (manual grading)
+      if (question.type === 'essay') {
+        return
+      }
+      
+      gradableQuestions++
+      
+      // Multiple Choice & True/False (correctAnswer is option index)
+      if (question.type === 'multiple-choice' || question.type === 'true-false') {
+        if (userAnswer === question.correctAnswer) {
+          correct++
+        }
+      }
+      // Fill-in-blank (correctAnswer is text)
+      else if (question.type === 'fill-blank' || question.question?.includes('________')) {
+        const userText = (userAnswer || '').toString().toLowerCase().trim()
+        const correctText = (question.correctAnswer || '').toString().toLowerCase().trim()
+        if (userText === correctText) {
+          correct++
+        }
+      }
+      // Fallback for any other question type with stored correctAnswer
+      else if (question.correctAnswer !== undefined) {
+        if (typeof question.correctAnswer === 'number') {
+          // Index-based answer
+          if (userAnswer === question.correctAnswer) {
+            correct++
+          }
+        } else {
+          // Text-based answer
+          const userText = (userAnswer || '').toString().toLowerCase().trim()
+          const correctText = (question.correctAnswer || '').toString().toLowerCase().trim()
+          if (userText === correctText) {
+            correct++
+          }
+        }
       }
     })
-    return Math.round((correct / quiz.questions.length) * 100)
+    
+    // Calculate percentage based on gradable questions only
+    return gradableQuestions > 0 ? Math.round((correct / gradableQuestions) * 100) : 0
   }
 
   const handleSubmitQuiz = async () => {
@@ -308,24 +357,72 @@ function QuizPageContent({ params }: QuizPageProps) {
               {currentQ.question}
             </h2>
             
-            <div className="space-y-3">
-              {currentQ.options.map((option, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleAnswerSelect(index)}
-                  className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${
-                    answers[currentQuestion] === index
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <span className="font-medium text-gray-700 mr-3">
-                    {String.fromCharCode(65 + index)}.
-                  </span>
-                  {option}
-                </button>
-              ))}
-            </div>
+            {/* Render based on question type */}
+            {(() => {
+              // Fill-in-blank questions
+              if (currentQ.type === 'fill-blank' || currentQ.question?.includes('________')) {
+                return (
+                  <div className="space-y-4">
+                    <input
+                      type="text"
+                      value={answers[currentQuestion] || ''}
+                      onChange={(e) => handleAnswerSelect(e.target.value)}
+                      placeholder="Enter your answer here..."
+                      className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                    />
+                  </div>
+                )
+              }
+              
+              // Essay questions
+              if (currentQ.type === 'essay') {
+                return (
+                  <div className="space-y-4">
+                    <textarea
+                      value={answers[currentQuestion] || ''}
+                      onChange={(e) => handleAnswerSelect(e.target.value)}
+                      placeholder="Write your essay answer here..."
+                      rows={8}
+                      className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none resize-vertical"
+                    />
+                    <p className="text-sm text-gray-500">
+                      Tip: Be clear and concise in your response. This will be manually graded.
+                    </p>
+                  </div>
+                )
+              }
+              
+              // Multiple choice & True/False questions
+              if (currentQ.type === 'multiple-choice' || currentQ.type === 'true-false') {
+                return (
+                  <div className="space-y-3">
+                    {currentQ.options?.map((option, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleAnswerSelect(index)}
+                        className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${
+                          answers[currentQuestion] === index
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <span className="font-medium text-gray-700 mr-3">
+                          {String.fromCharCode(65 + index)}.
+                        </span>
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                )
+              }
+              
+              // Fallback for unknown types
+              return (
+                <div className="text-red-500 p-4 border border-red-200 rounded-lg">
+                  Unknown question type: {currentQ.type}
+                </div>
+              )
+            })()}
           </div>
 
           <div className="flex justify-between items-center">
@@ -338,20 +435,34 @@ function QuizPageContent({ params }: QuizPageProps) {
             </button>
             
             <div className="flex gap-2">
-              {quiz.questions.map((_, index) => (
-                <div
-                  key={index}
-                  className={`w-3 h-3 rounded-full ${
-                    answers[index] !== -1 ? 'bg-blue-500' : 'bg-gray-300'
-                  }`}
-                />
-              ))}
+              {quiz.questions.map((question, index) => {
+                const isAnswered = (question.type === 'multiple-choice' || question.type === 'true-false')
+                  ? answers[index] !== -1
+                  : answers[index] && answers[index].toString().trim() !== ''
+                return (
+                  <div
+                    key={index}
+                    className={`w-3 h-3 rounded-full ${
+                      isAnswered ? 'bg-blue-500' : 'bg-gray-300'
+                    }`}
+                  />
+                )
+              })}
             </div>
 
             {currentQuestion === quiz.questions.length - 1 ? (
               <button
                 onClick={handleSubmitQuiz}
-                disabled={answers.includes(-1)}
+                disabled={answers.some((answer, index) => {
+                  const question = quiz.questions[index]
+                  if (question.type === 'multiple-choice' || question.type === 'true-false') {
+                    return answer === -1
+                  }
+                  if (question.type === 'fill-blank' || question.type === 'essay') {
+                    return !answer || answer.toString().trim() === ''
+                  }
+                  return false
+                })}
                 className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50"
               >
                 Submit Quiz
