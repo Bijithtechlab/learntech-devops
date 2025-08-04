@@ -42,7 +42,7 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
     if (!user?.email) return
     
     try {
-      const response = await fetch(`/api/student/completed-materials?email=${user.email}&courseId=${params.courseId}`)
+      const response = await fetch(`/api/student/progress?email=${user.email}&courseId=${params.courseId}`)
       const data = await response.json()
       if (data.success) {
         setCompletedMaterials(new Set(data.completedMaterials))
