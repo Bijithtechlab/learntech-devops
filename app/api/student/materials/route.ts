@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, QueryCommand, ScanCommand } from '@aws-sdk/lib-dynamodb'
-import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3'
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
-
 const dynamoClient = new DynamoDBClient({ 
   region: 'ap-south-1',
   credentials: process.env.CUSTOM_AWS_ACCESS_KEY_ID ? {
@@ -12,15 +9,6 @@ const dynamoClient = new DynamoDBClient({
   } : undefined
 })
 const docClient = DynamoDBDocumentClient.from(dynamoClient)
-const s3Client = new S3Client({ 
-  region: 'ap-south-1',
-  credentials: process.env.CUSTOM_AWS_ACCESS_KEY_ID ? {
-    accessKeyId: process.env.CUSTOM_AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.CUSTOM_AWS_SECRET_ACCESS_KEY!
-  } : undefined
-})
-
-const BUCKET_NAME = 'learntechlab-course-materials'
 
 export async function GET(request: NextRequest) {
   try {
@@ -69,23 +57,9 @@ export async function GET(request: NextRequest) {
           materials: []
         })
       } else if (item.type === 'pdf' && item.subSectionId) {
-        // Generate signed URL for PDF access
-        let signedUrl = ''
-        if (item.s3Key) {
-          try {
-            const getObjectCommand = new GetObjectCommand({
-              Bucket: BUCKET_NAME,
-              Key: item.s3Key
-            })
-            signedUrl = await getSignedUrl(s3Client, getObjectCommand, { expiresIn: 3600 })
-          } catch (error) {
-            console.error('Error generating signed URL:', error)
-          }
-        }
-        
         materials.push({
           ...item,
-          pdfUrl: signedUrl || item.pdfUrl
+          pdfUrl: item.pdfUrl
         })
       } else if (item.type === 'quiz') {
         quizzes.push({
