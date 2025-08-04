@@ -1,34 +1,35 @@
 'use client'
-import { LogOut } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import LMSLogo from './LMSLogo'
 
-export default function AdminHeader() {
-  const router = useRouter()
+interface AdminHeaderProps {
+  title: string
+  children?: React.ReactNode
+}
 
-  const handleSignOut = () => {
-    // Clear any admin session/tokens
-    localStorage.removeItem('adminToken')
-    router.push('/login')
+export default function AdminHeader({ title, children }: AdminHeaderProps) {
+  const handleLogout = () => {
+    window.location.href = '/login'
   }
 
   return (
-    <header className="bg-white shadow-sm border-b">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between py-4">
-          <div className="flex items-center">
-            <h1 className="text-xl font-bold text-blue-600">LearnTechLab</h1>
-            <span className="ml-2 text-sm text-gray-500">Admin Portal</span>
-          </div>
-          
+    <div className="flex justify-between items-center mb-8">
+      <div className="flex items-center gap-4">
+        <LMSLogo />
+        <span className="text-gray-400">|</span>
+        <h1 className="text-2xl font-semibold text-gray-700">{title.replace('LearnTechLab LMS - ', '')}</h1>
+      </div>
+      <div className="flex items-center gap-4">
+        {children}
+        <div className="flex items-center gap-3">
+          <span className="text-gray-600">Welcome, Admin</span>
           <button
-            onClick={handleSignOut}
-            className="flex items-center gap-2 text-gray-600 hover:text-red-600 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors"
+            onClick={handleLogout}
+            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
           >
-            <LogOut className="h-4 w-4" />
             Sign Out
           </button>
         </div>
       </div>
-    </header>
+    </div>
   )
 }

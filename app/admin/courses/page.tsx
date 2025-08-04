@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { Plus, Edit, Trash2, X } from 'lucide-react'
+import AdminHeader from '@/components/AdminHeader'
 
 interface Course {
   courseId: string
@@ -80,24 +81,21 @@ export default function CourseManagementPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Course Management</h1>
-          <div className="flex gap-4">
-            <button
-              onClick={openAddModal}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-            >
-              <Plus className="h-4 w-4" />
-              Add Course
-            </button>
-            <a
-              href="/admin"
-              className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
-            >
-              Back to Dashboard
-            </a>
-          </div>
-        </div>
+        <AdminHeader title="Course Management">
+          <button
+            onClick={openAddModal}
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          >
+            <Plus className="h-4 w-4" />
+            Add Course
+          </button>
+          <a
+            href="/admin"
+            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+          >
+            Back to Dashboard
+          </a>
+        </AdminHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {courses.map((course) => (

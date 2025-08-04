@@ -6,12 +6,12 @@ import { UserProvider } from '@/contexts/UserContext'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'LearnTechLab - AI Powered Software Development - Cloud, Generative AI, & Vibe Coding: The Future-Ready Engineer',
-  description: 'Master AI-Powered Software Development, DevOps, and Cloud Technologies with comprehensive hands-on training',
+  title: 'LearnTechLab LMS - Learning Management System for AI-Powered Software Development',
+  description: 'Comprehensive Learning Management System for AI-Powered Software Development, DevOps, and Cloud Technologies',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'learntechlab'
+    title: 'LearnTechLab LMS'
   }
 }
 
@@ -33,7 +33,7 @@ export default function RootLayout({
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="learntechlab" />
+        <meta name="apple-mobile-web-app-title" content="LearnTechLab LMS" />
         <meta name="format-detection" content="telephone=no" />
       </head>
       <body className={inter.className}>

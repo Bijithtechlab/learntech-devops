@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, Upload, Edit, Trash2, FileText, HelpCircle, X } from 'lucide-react'
 import QuestionBuilder from '@/components/QuestionBuilder'
+import AdminHeader from '@/components/AdminHeader'
 
 
 interface Material {
@@ -162,15 +163,14 @@ export default function CourseManagementPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Course Materials Management</h1>
+        <AdminHeader title="Course Materials">
           <a
             href="/admin"
             className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
           >
             Back to Dashboard
           </a>
-        </div>
+        </AdminHeader>
         
         <div className="mb-8">
           
