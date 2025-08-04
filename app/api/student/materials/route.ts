@@ -138,19 +138,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: true, sections: sectionsArray })
   } catch (error: any) {
     console.error('Error fetching student materials:', error)
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      name: error.name,
-      stack: error.stack,
-      courseId: courseId
-    })
     return NextResponse.json({ 
       success: false, 
-      message: 'Failed to fetch materials',
-      error: error.message,
-      courseId: courseId,
-      details: error.stack
+      message: 'Failed to fetch materials'
     }, { status: 500 })
   }
 }
