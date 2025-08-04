@@ -1,28 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, QueryCommand, ScanCommand } from '@aws-sdk/lib-dynamodb'
-import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3'
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
-const dynamoClient = new DynamoDBClient({ 
-  region: 'ap-south-1',
-  ...(process.env.CUSTOM_AWS_ACCESS_KEY_ID ? {
-    credentials: {
-      accessKeyId: process.env.CUSTOM_AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.CUSTOM_AWS_SECRET_ACCESS_KEY!
-    }
-  } : {})
-})
-const docClient = DynamoDBDocumentClient.from(dynamoClient)
+import AWS from 'aws-sdk'
 
-const s3Client = new S3Client({ 
-  region: 'ap-south-1',
-  ...(process.env.CUSTOM_AWS_ACCESS_KEY_ID ? {
-    credentials: {
-      accessKeyId: process.env.CUSTOM_AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.CUSTOM_AWS_SECRET_ACCESS_KEY!
-    }
-  } : {})
+AWS.config.update({
+  region: 'ap-south-1'
 })
+
+const dynamodb = new AWS.DynamoDB.DocumentClient()
+const s3 = new AWS.S3()
 
 const BUCKET_NAME = 'learntechlab-course-materials'
 
@@ -36,13 +20,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Use scan to get all items for this course
-    const command = new ScanCommand({
+    const params = {
       TableName: 'course-materials',
       FilterExpression: 'courseId = :courseId',
       ExpressionAttributeValues: { ':courseId': courseId }
-    })
+    }
 
-    const result = await docClient.send(command)
+    const result = await dynamodb.scan(params).promise()
     
     // Group by sections, subsections, and materials
     const sections: any = {}
@@ -77,11 +61,11 @@ export async function GET(request: NextRequest) {
         let signedUrl = item.pdfUrl // fallback to original URL
         if (item.s3Key) {
           try {
-            const getObjectCommand = new GetObjectCommand({
+            signedUrl = s3.getSignedUrl('getObject', {
               Bucket: BUCKET_NAME,
-              Key: item.s3Key
+              Key: item.s3Key,
+              Expires: 3600
             })
-            signedUrl = await getSignedUrl(s3Client, getObjectCommand, { expiresIn: 3600 })
           } catch (error) {
             console.error('Error generating signed URL:', error)
             // Keep the original pdfUrl as fallback
