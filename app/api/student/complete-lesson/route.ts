@@ -1,41 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb'
-import { randomUUID } from 'crypto'
 
-const dynamoClient = new DynamoDBClient({ region: 'ap-south-1' })
-const docClient = DynamoDBDocumentClient.from(dynamoClient)
+const LAMBDA_API_URL = 'https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/complete-lesson'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, courseId, materialId } = await request.json()
+    const body = await request.json()
 
-    if (!email || !courseId || !materialId) {
-      return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
-    }
-
-    const progressItem = {
-      id: randomUUID(),
-      email,
-      courseId,
-      materialId,
-      completedAt: new Date().toISOString()
-    }
-
-    const command = new PutCommand({
-      TableName: 'student-progress',
-      Item: progressItem,
-      ConditionExpression: 'attribute_not_exists(id)'
+    // Call Lambda function via API Gateway
+    const response = await fetch(LAMBDA_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
     })
 
-    await docClient.send(command)
+    const data = await response.json()
 
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Error marking lesson complete:', error)
-    return NextResponse.json(
-      { success: false, error: 'Failed to mark lesson complete' },
-      { status: 500 }
-    )
+    if (!response.ok) {
+      throw new Error(data.error || 'Lambda function failed')
+    }
+
+    return NextResponse.json(data)
+  } catch (error: any) {
+    console.error('Error calling complete-lesson Lambda:', error)
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Failed to mark lesson complete',
+      message: error.message
+    }, { status: 500 })
   }
 }
