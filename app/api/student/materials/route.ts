@@ -142,13 +142,15 @@ export async function GET(request: NextRequest) {
       message: error.message,
       code: error.code,
       name: error.name,
-      stack: error.stack
+      stack: error.stack,
+      courseId: courseId
     })
     return NextResponse.json({ 
       success: false, 
       message: 'Failed to fetch materials',
       error: error.message,
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      courseId: courseId,
+      details: error.stack
     }, { status: 500 })
   }
 }
