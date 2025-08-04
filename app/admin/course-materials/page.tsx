@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { Plus, Upload, Edit, Trash2, FileText, HelpCircle } from 'lucide-react'
+import { Plus, Upload, Edit, Trash2, FileText, HelpCircle, X } from 'lucide-react'
+import QuestionBuilder from '@/components/QuestionBuilder'
 
 interface Material {
   id: string
@@ -46,8 +47,9 @@ interface Section {
 
 export default function CourseManagementPage() {
   const [sections, setSections] = useState<Section[]>([])
+  const [courses, setCourses] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedCourse, setSelectedCourse] = useState('ai-devops-cloud')
+  const [selectedCourse, setSelectedCourse] = useState('')
   const [showAddSection, setShowAddSection] = useState(false)
   const [showEditSection, setShowEditSection] = useState<Section | null>(null)
   const [showAddSubSection, setShowAddSubSection] = useState<string | null>(null)
@@ -56,8 +58,27 @@ export default function CourseManagementPage() {
   const [showAddQuiz, setShowAddQuiz] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchCourseMaterials()
+    fetchCourses()
+  }, [])
+
+  useEffect(() => {
+    if (selectedCourse) {
+      fetchCourseMaterials()
+    }
   }, [selectedCourse])
+
+  const fetchCourses = async () => {
+    try {
+      const response = await fetch('/api/courses')
+      const data = await response.json()
+      if (data.success && data.courses.length > 0) {
+        setCourses(data.courses)
+        setSelectedCourse(data.courses[0].courseId)
+      }
+    } catch (error) {
+      console.error('Error fetching courses:', error)
+    }
+  }
 
   const fetchCourseMaterials = async () => {
     try {
@@ -157,7 +178,11 @@ export default function CourseManagementPage() {
               onChange={(e) => setSelectedCourse(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
-              <option value="ai-devops-cloud">AI Powered Software Development, DevOps & Cloud</option>
+              {courses.map((course) => (
+                <option key={course.courseId} value={course.courseId}>
+                  {course.title}
+                </option>
+              ))}
             </select>
             
             <button
@@ -385,6 +410,7 @@ export default function CourseManagementPage() {
         {showEditSubSection && (
           <EditSubSectionModal
             subSection={showEditSubSection}
+            courseId={selectedCourse}
             onClose={() => setShowEditSubSection(null)}
             onSuccess={() => {
               setShowEditSubSection(null)
@@ -648,6 +674,7 @@ function EditSectionModal({ section, onClose, onSuccess }: {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: section.id,
+          courseId: section.courseId,
           title,
           description,
           order
@@ -729,8 +756,9 @@ function EditSectionModal({ section, onClose, onSuccess }: {
 }
 
 // Edit Sub Section Modal Component  
-function EditSubSectionModal({ subSection, onClose, onSuccess }: {
+function EditSubSectionModal({ subSection, courseId, onClose, onSuccess }: {
   subSection: SubSection
+  courseId: string
   onClose: () => void
   onSuccess: () => void
 }) {
@@ -749,6 +777,8 @@ function EditSubSectionModal({ subSection, onClose, onSuccess }: {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: subSection.id,
+          courseId: courseId,
+          sectionId: subSection.sectionId,
           title,
           description,
           order
@@ -897,7 +927,6 @@ function AddMaterialModal({ courseId, subSectionId, onClose, onSuccess }: {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              required
             />
           </div>
           
@@ -989,15 +1018,53 @@ function AddQuizModal({ courseId, sectionId, onClose, onSuccess }: {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [order, setOrder] = useState(1)
-  const [estimatedTime, setEstimatedTime] = useState('')
+  const [timeLimit, setTimeLimit] = useState(30)
+  const [passingScore, setPassingScore] = useState(70)
+  const [maxAttempts, setMaxAttempts] = useState(3)
+  const [randomizeQuestions, setRandomizeQuestions] = useState(false)
   const [isLocked, setIsLocked] = useState(false)
+  const [questions, setQuestions] = useState<any[]>([])
   const [saving, setSaving] = useState(false)
+
+  const addQuestion = () => {
+    const newQuestion = {
+      id: Date.now().toString(),
+      question: '',
+      type: 'multiple-choice',
+      options: ['', '', '', ''],
+      correctAnswer: 0,
+      points: 10,
+      explanation: ''
+    }
+    setQuestions([...questions, newQuestion])
+  }
+
+  const updateQuestion = (index: number, field: string, value: any) => {
+    const updated = [...questions]
+    updated[index] = { ...updated[index], [field]: value }
+    setQuestions(updated)
+  }
+
+  const updateOption = (questionIndex: number, optionIndex: number, value: string) => {
+    const updated = [...questions]
+    updated[questionIndex].options[optionIndex] = value
+    setQuestions(updated)
+  }
+
+  const removeQuestion = (index: number) => {
+    setQuestions(questions.filter((_, i) => i !== index))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (questions.length === 0) {
+      alert('Please add at least one question')
+      return
+    }
     setSaving(true)
 
     try {
+      const totalPoints = questions.reduce((sum, q) => sum + q.points, 0)
       const response = await fetch('/api/admin/quizzes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1007,8 +1074,13 @@ function AddQuizModal({ courseId, sectionId, onClose, onSuccess }: {
           title,
           description,
           order,
-          estimatedTime,
-          isLocked
+          timeLimit,
+          passingScore,
+          maxAttempts,
+          randomizeQuestions,
+          isLocked,
+          questions,
+          totalPoints
         })
       })
 
@@ -1028,32 +1100,29 @@ function AddQuizModal({ courseId, sectionId, onClose, onSuccess }: {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-md w-full p-6">
-        <h3 className="text-lg font-semibold mb-4">Add Quiz to Section</h3>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Quiz Title</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-              required
-            />
+      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold">Create Advanced Quiz</h3>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+              <X className="h-6 w-6" />
+            </button>
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-              rows={2}
-            />
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Basic Quiz Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Quiz Title</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                required
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Order</label>
               <input
@@ -1064,31 +1133,106 @@ function AddQuizModal({ courseId, sectionId, onClose, onSuccess }: {
                 min="1"
               />
             </div>
-            
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+              rows={2}
+            />
+          </div>
+
+          {/* Quiz Settings */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Est. Time</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Time Limit (minutes)</label>
               <input
-                type="text"
-                value={estimatedTime}
-                onChange={(e) => setEstimatedTime(e.target.value)}
-                placeholder="e.g., 30 min"
+                type="number"
+                value={timeLimit}
+                onChange={(e) => setTimeLimit(parseInt(e.target.value))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                min="1"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Passing Score (%)</label>
+              <input
+                type="number"
+                value={passingScore}
+                onChange={(e) => setPassingScore(parseInt(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                min="0"
+                max="100"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Max Attempts</label>
+              <input
+                type="number"
+                value={maxAttempts}
+                onChange={(e) => setMaxAttempts(parseInt(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                min="1"
               />
             </div>
           </div>
-          
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="isLocked"
-              checked={isLocked}
-              onChange={(e) => setIsLocked(e.target.checked)}
-              className="mr-2"
-            />
-            <label htmlFor="isLocked" className="text-sm text-gray-700">Lock this quiz</label>
+
+          {/* Quiz Options */}
+          <div className="flex gap-6">
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="randomizeQuestions"
+                checked={randomizeQuestions}
+                onChange={(e) => setRandomizeQuestions(e.target.checked)}
+                className="mr-2"
+              />
+              <label htmlFor="randomizeQuestions" className="text-sm text-gray-700">Randomize Questions</label>
+            </div>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="isLocked"
+                checked={isLocked}
+                onChange={(e) => setIsLocked(e.target.checked)}
+                className="mr-2"
+              />
+              <label htmlFor="isLocked" className="text-sm text-gray-700">Lock this quiz</label>
+            </div>
           </div>
-          
-          <div className="flex gap-3 pt-4">
+
+          {/* Questions Section */}
+          <div className="border-t pt-6">
+            <div className="flex justify-between items-center mb-4">
+              <h4 className="text-lg font-semibold">Questions ({questions.length})</h4>
+              <button
+                type="button"
+                onClick={addQuestion}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add Question
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {questions.map((question, index) => (
+                <QuestionBuilder
+                  key={question.id}
+                  question={question}
+                  index={index}
+                  onUpdate={updateQuestion}
+                  onUpdateOption={updateOption}
+                  onRemove={removeQuestion}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-4 border-t">
             <button
               type="button"
               onClick={onClose}
@@ -1098,7 +1242,7 @@ function AddQuizModal({ courseId, sectionId, onClose, onSuccess }: {
             </button>
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || questions.length === 0}
               className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50"
             >
               {saving ? 'Creating...' : 'Create Quiz'}

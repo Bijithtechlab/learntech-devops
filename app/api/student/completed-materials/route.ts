@@ -27,9 +27,9 @@ export async function GET(request: NextRequest) {
     })
 
     const materialsResult = await docClient.send(materialsCommand)
-    const totalMaterials = materialsResult.Items?.length || 0
+    const courseMaterialIds = materialsResult.Items?.map(item => item.id) || []
 
-    // Get completed materials for the user using GSI
+    // Get completed materials for the user
     const completedCommand = new ScanCommand({
       TableName: 'student-progress',
       FilterExpression: 'email = :email',
@@ -40,29 +40,19 @@ export async function GET(request: NextRequest) {
 
     const completedResult = await docClient.send(completedCommand)
     
-    // Filter completed materials for this specific course
-    const courseCompletedMaterials = completedResult.Items?.filter(item => {
-      // Check if the materialId exists in the course materials
-      return materialsResult.Items?.some(material => material.id === item.materialId)
-    }) || []
-    
-    const completedMaterials = courseCompletedMaterials.length
-
-    const progressPercentage = totalMaterials > 0 ? Math.round((completedMaterials / totalMaterials) * 100) : 0
+    // Filter completed materials that belong to this course
+    const completedMaterials = completedResult.Items
+      ?.filter(item => courseMaterialIds.includes(item.materialId))
+      ?.map(item => item.materialId) || []
 
     return NextResponse.json({
       success: true,
-      progress: {
-        courseId,
-        totalLessons: totalMaterials,
-        completedLessons: completedMaterials,
-        progressPercentage
-      }
+      completedMaterials
     })
   } catch (error) {
-    console.error('Error fetching progress:', error)
+    console.error('Error fetching completed materials:', error)
     return NextResponse.json(
-      { success: false, message: 'Failed to fetch progress' },
+      { success: false, message: 'Failed to fetch completed materials' },
       { status: 500 }
     )
   }

@@ -39,10 +39,12 @@ export async function POST(request: NextRequest) {
 // PUT - Update subsection
 export async function PUT(request: NextRequest) {
   try {
-    const { id, title, description, order } = await request.json()
+    const { id, courseId, sectionId, title, description, order } = await request.json()
 
     const subSection = {
       id,
+      courseId,
+      sectionId,
       title,
       description,
       order,

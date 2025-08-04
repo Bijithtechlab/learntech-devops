@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { StudentAuthProvider, useStudentAuth } from '@/contexts/StudentAuthContext'
-import { getQuizById, fetchQuizById, Quiz, QuizQuestion } from '@/data/quizData'
+
 import { ArrowLeft, Clock, CheckCircle, XCircle, Award, LogOut } from 'lucide-react'
 import Link from 'next/link'
 
@@ -13,7 +13,7 @@ interface QuizPageProps {
 
 function QuizPageContent({ params }: QuizPageProps) {
   const { user } = useStudentAuth()
-  const [quiz, setQuiz] = useState<Quiz | null>(null)
+  const [quiz, setQuiz] = useState<any>(null)
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<number[]>([])
   const [timeLeft, setTimeLeft] = useState(0)
@@ -29,12 +29,14 @@ function QuizPageContent({ params }: QuizPageProps) {
 
   const loadQuiz = async () => {
     try {
-      const quizData = await fetchQuizById(params.quizId)
-      if (quizData) {
-        setQuiz(quizData)
-        setAnswers(new Array(quizData.questions.length).fill(-1))
-        if (quizData.timeLimit) {
-          setTimeLeft(quizData.timeLimit * 60) // Convert to seconds
+      const response = await fetch(`/api/student/quiz/${params.quizId}`)
+      const data = await response.json()
+      
+      if (data.success && data.quiz) {
+        setQuiz(data.quiz)
+        setAnswers(new Array(data.quiz.questions.length).fill(-1))
+        if (data.quiz.timeLimit) {
+          setTimeLeft(data.quiz.timeLimit * 60) // Convert to seconds
         }
       }
     } catch (error) {

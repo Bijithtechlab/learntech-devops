@@ -14,9 +14,12 @@ interface CourseContentPageProps {
 function CourseContentPageContent({ params }: CourseContentPageProps) {
   const { user } = useStudentAuth()
   const [courseSections, setCourseSections] = useState<CourseSection[]>([])
+  const [courseTitle, setCourseTitle] = useState<string>('')
+  const [completedMaterials, setCompletedMaterials] = useState<Set<string>>(new Set())
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const [paymentError, setPaymentError] = useState<string | null>(null)
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
+
 
   useEffect(() => {
     if (user && params.courseId) {
@@ -30,39 +33,57 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
   }, [user, params.courseId])
 
   const checkPaymentAndFetchMaterials = async () => {
+    await fetchCourseTitle()
+    await fetchCourseMaterials()
+    await fetchCompletedMaterials()
+  }
+
+  const fetchCompletedMaterials = async () => {
+    if (!user?.email) return
+    
     try {
-      console.log('Checking payment for user:', user?.email)
-      
-      // Direct check to admin API for registration status
-      const response = await fetch('https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/admin')
+      const response = await fetch(`/api/student/completed-materials?email=${user.email}&courseId=${params.courseId}`)
       const data = await response.json()
-      
       if (data.success) {
-        const userRegistration = data.registrations.find((reg: any) => reg.email === user?.email)
-        
-        if (!userRegistration) {
-          setPaymentError('NOT_REGISTERED')
-          setLoading(false)
-          return
-        }
-        
-        if (userRegistration.PaymentStatus !== 'completed') {
-          if (userRegistration.PaymentStatus === 'pending' || userRegistration.PaymentStatus === 'in-progress') {
-            setPaymentError('PAYMENT_PENDING')
-          } else {
-            setPaymentError('PAYMENT_REQUIRED')
-          }
-          setLoading(false)
-          return
+        setCompletedMaterials(new Set(data.completedMaterials))
+      }
+    } catch (error) {
+      console.error('Error fetching completed materials:', error)
+    }
+  }
+
+  const isSubSectionCompleted = (subSection: any) => {
+    if (!subSection.materials || subSection.materials.length === 0) return false
+    return subSection.materials.every((material: any) => completedMaterials.has(material.id))
+  }
+
+  const isSectionCompleted = (section: any) => {
+    if (!section.subSections || section.subSections.length === 0) return false
+    return section.subSections.every((subSection: any) => isSubSectionCompleted(subSection))
+  }
+
+  const toggleSection = (sectionId: string) => {
+    const newExpanded = new Set(expandedSections)
+    if (newExpanded.has(sectionId)) {
+      newExpanded.delete(sectionId)
+    } else {
+      newExpanded.add(sectionId)
+    }
+    setExpandedSections(newExpanded)
+  }
+
+  const fetchCourseTitle = async () => {
+    try {
+      const response = await fetch('/api/courses')
+      const data = await response.json()
+      if (data.success) {
+        const course = data.courses.find((c: any) => c.courseId === params.courseId)
+        if (course) {
+          setCourseTitle(course.title)
         }
       }
-      
-      console.log('Payment check passed, fetching materials')
-      await fetchCourseMaterials()
     } catch (error) {
-      console.error('Payment check error:', error)
-      // If API fails, allow access (fallback)
-      await fetchCourseMaterials()
+      console.error('Error fetching course title:', error)
     }
   }
 
@@ -89,15 +110,7 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
     }
   }
 
-  const toggleSection = (sectionId: string) => {
-    const newExpanded = new Set(expandedSections)
-    if (newExpanded.has(sectionId)) {
-      newExpanded.delete(sectionId)
-    } else {
-      newExpanded.add(sectionId)
-    }
-    setExpandedSections(newExpanded)
-  }
+
 
   if (loading) {
     return (
@@ -162,9 +175,7 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
     )
   }
 
-  const courseTitle = params.courseId === 'ai-devops-cloud' 
-    ? 'AI Powered Software Development - Cloud, Generative AI, & Vibe Coding' 
-    : params.courseId
+  const displayTitle = courseTitle || params.courseId
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -186,7 +197,7 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
                 </Link>
               </div>
               <div className="border-l border-gray-300 pl-4">
-                <h1 className="text-lg font-semibold text-gray-900">{courseTitle}</h1>
+                <h1 className="text-lg font-semibold text-gray-900">{displayTitle}</h1>
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -217,92 +228,127 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
         </div>
 
         {/* Course Sections */}
-        <div className="space-y-4">
-          {courseSections.map((section) => {
-            const isExpanded = expandedSections.has(section.id)
-            return (
-              <div key={section.id} className="bg-white rounded-lg shadow-sm border">
-                <div 
-                  className="p-6 cursor-pointer hover:bg-gray-50 transition-colors"
-                  onClick={() => toggleSection(section.id)}
-                >
-                  <div className="flex items-center justify-between">
+        <div className="space-y-6">
+          {courseSections.map((section) => (
+            <div key={section.id} className="bg-white rounded-lg shadow-sm border">
+              <div 
+                className="p-6 border-b border-gray-200 cursor-pointer hover:bg-gray-50"
+                onClick={() => toggleSection(section.id)}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <ChevronDown 
+                      className={`h-5 w-5 text-gray-500 transition-transform ${
+                        expandedSections.has(section.id) ? 'rotate-0' : '-rotate-90'
+                      }`}
+                    />
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-3">
                         {section.title}
+                        {isSectionCompleted(section) && <CheckCircle className="h-5 w-5 text-green-500" />}
                       </h3>
                       <p className="text-gray-600">{section.description}</p>
                     </div>
-                    <ChevronDown 
-                      className={`h-5 w-5 text-gray-500 transition-transform ${
-                        isExpanded ? 'rotate-0' : '-rotate-90'
-                      }`}
-                    />
                   </div>
+                  <span className={`text-sm px-3 py-1 rounded ${
+                    isSectionCompleted(section) 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-blue-100 text-blue-800'
+                  }`}>
+                    {isSectionCompleted(section) ? 'Section Completed' : 'In Progress'}
+                  </span>
                 </div>
-                
-                {isExpanded && (
-                  <div className="border-t border-gray-200">
-                    <div className="divide-y divide-gray-200">
-                      {section.materials.map((material) => (
-                        <div key={material.id} className="p-4 hover:bg-gray-50">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              {material.type === 'pdf' ? (
-                                <FileText className="h-5 w-5 text-blue-500" />
-                              ) : (
-                                <HelpCircle className="h-5 w-5 text-green-500" />
-                              )}
-                              <div>
-                                <h4 className="font-medium text-gray-900 flex items-center gap-2">
-                                  {material.title}
-                                  {material.isLocked && <Lock className="h-4 w-4 text-gray-400" />}
-                                </h4>
-                                <p className="text-sm text-gray-600">{material.description}</p>
-                                {material.estimatedTime && (
-                                  <div className="flex items-center gap-1 mt-1">
-                                    <Clock className="h-3 w-3 text-gray-400" />
-                                    <span className="text-xs text-gray-500">{material.estimatedTime}</span>
-                                  </div>
-                                )}
-                              </div>
+              </div>
+              
+              {expandedSections.has(section.id) && (
+                <div className="p-6">
+                  <div className="space-y-3">
+                    {section.subSections?.map((subSection) => (
+                      <div key={subSection.id}>
+                        {/* Subsection Materials in Single Row */}
+                        {subSection.materials?.map((material) => (
+                          <div key={material.id} className="flex items-center justify-between py-3 pl-6 hover:bg-gray-50 rounded border-b border-gray-100 last:border-b-0">
+                            <div className="flex items-center gap-4 flex-1">
+                              <FileText className="h-4 w-4 text-blue-500" />
+                              <span className="font-medium text-gray-900 min-w-[200px]">{subSection.title}</span>
+                              <span className="text-gray-700">{material.title}</span>
+                              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">PDF</span>
                             </div>
-                            
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-3">
+                              <span className={`text-xs px-2 py-1 rounded ${
+                                completedMaterials.has(material.id) 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-gray-100 text-gray-600'
+                              }`}>
+                                {completedMaterials.has(material.id) ? 'Completed' : 'Not Started'}
+                              </span>
                               {!material.isLocked ? (
-                                <>
-                                  <CheckCircle className="h-4 w-4 text-green-500" />
-                                  {material.type === 'pdf' ? (
-                                    <Link
-                                      href={`/student/material/${material.id}`}
-                                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm"
-                                    >
-                                      View PDF
-                                    </Link>
-                                  ) : (
-                                    <Link
-                                      href={`/student/quiz/${material.quizId || material.id}`}
-                                      className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm"
-                                    >
-                                      Take Quiz
-                                    </Link>
-                                  )}
-                                </>
+                                <Link
+                                  href={`/student/material/${material.id}`}
+                                  className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                                >
+                                  View PDF
+                                </Link>
                               ) : (
-                                <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                                <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded">
                                   Locked
                                 </span>
                               )}
                             </div>
                           </div>
+                        ))}
+                        
+                        {/* Show subsection without materials */}
+                        {(!subSection.materials || subSection.materials.length === 0) && (
+                          <div className="flex items-center justify-between py-3 pl-6 hover:bg-gray-50 rounded border-b border-gray-100">
+                            <div className="flex items-center gap-4 flex-1">
+                              <FileText className="h-4 w-4 text-blue-500" />
+                              <span className="font-medium text-gray-900 min-w-[200px]">{subSection.title}</span>
+                              <span className="text-gray-700">No materials</span>
+                              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">PDF</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600">
+                                Not Available
+                              </span>
+                              <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded">
+                                View PDF
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    
+                    {/* Section Quizzes */}
+                    {section.quizzes?.map((quiz) => (
+                      <div key={quiz.id} className="flex items-center justify-between py-2 pl-6 hover:bg-gray-50 rounded">
+                        <div className="flex items-center gap-3">
+                          <HelpCircle className="h-4 w-4 text-green-500" />
+                          <span className="text-gray-900">{quiz.title}</span>
+                          {quiz.isLocked && <Lock className="h-4 w-4 text-gray-400" />}
                         </div>
-                      ))}
-                    </div>
+                        <div className="flex items-center gap-2">
+                          {!quiz.isLocked ? (
+                            <Link
+                              href={`/student/quiz/${quiz.id}`}
+                              className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                            >
+                              Quiz
+                            </Link>
+                          ) : (
+                            <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded">
+                              Locked
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                )}
-              </div>
-            )
-          })}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </main>
     </div>

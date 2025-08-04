@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb'
+import { randomUUID } from 'crypto'
 
 const dynamoClient = new DynamoDBClient({ region: 'ap-south-1' })
 const docClient = DynamoDBDocumentClient.from(dynamoClient)
@@ -10,31 +11,31 @@ export async function POST(request: NextRequest) {
     const { email, courseId, materialId } = await request.json()
 
     if (!email || !courseId || !materialId) {
-      return NextResponse.json({ error: 'Email, courseId, and materialId required' }, { status: 400 })
+      return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
     }
 
-    // Mark lesson as completed
+    const progressItem = {
+      id: randomUUID(),
+      email,
+      courseId,
+      materialId,
+      completedAt: new Date().toISOString()
+    }
+
     const command = new PutCommand({
       TableName: 'student-progress',
-      Item: {
-        id: `${email}#${courseId}#${materialId}`,
-        studentEmail: email,
-        courseId: courseId,
-        materialId: materialId,
-        completed: true,
-        completedAt: new Date().toISOString()
-      }
+      Item: progressItem,
+      ConditionExpression: 'attribute_not_exists(id)'
     })
 
     await docClient.send(command)
-    console.log('Lesson marked complete:', { email, courseId, materialId })
 
-    return NextResponse.json({ success: true, message: 'Lesson marked complete' })
-  } catch (error: any) {
-    console.error('Complete lesson error:', error)
-    return NextResponse.json({ 
-      error: 'Failed to mark lesson complete', 
-      details: error.message 
-    }, { status: 500 })
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Error marking lesson complete:', error)
+    return NextResponse.json(
+      { success: false, error: 'Failed to mark lesson complete' },
+      { status: 500 }
+    )
   }
 }

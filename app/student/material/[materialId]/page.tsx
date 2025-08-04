@@ -39,20 +39,33 @@ function MaterialViewerPageContent({ params }: MaterialViewerPageProps) {
     }
   }
 
+  const [courseId, setCourseId] = useState<string>('')
+
   const fetchMaterial = async () => {
     try {
       // Try to find material in dynamic data first
-      for (const courseId of user.enrolledCourses) {
-        const response = await fetch(`/api/student/materials?courseId=${courseId}`)
+      for (const cId of user.enrolledCourses) {
+        const response = await fetch(`/api/student/materials?courseId=${cId}`)
         const data = await response.json()
         
         if (data.success) {
           for (const section of data.sections) {
-            const mat = section.materials.find((m: any) => m.id === params.materialId)
-            if (mat) {
-              setMaterial(mat)
-              setLoading(false)
-              return
+            // Check subsections for materials
+            if (section.subSections) {
+              for (const subSection of section.subSections) {
+                if (subSection.materials) {
+                  const mat = subSection.materials.find((m: any) => m.id === params.materialId)
+                  if (mat) {
+                    setMaterial({
+                      ...mat,
+                      sectionTitle: section.title
+                    })
+                    setCourseId(cId)
+                    setLoading(false)
+                    return
+                  }
+                }
+              }
             }
           }
         }
@@ -81,22 +94,10 @@ function MaterialViewerPageContent({ params }: MaterialViewerPageProps) {
   }
 
   const handleMarkComplete = async () => {
-    if (!material || !user) return
+    if (!material || !user || !courseId) return
     
     setMarkingComplete(true)
     try {
-      // Find courseId for this material
-      let courseId = 'ai-devops-cloud' // Default
-      for (const cId of user.enrolledCourses) {
-        const sections = getCourseMaterials(cId)
-        for (const section of sections) {
-          if (section.materials.find(m => m.id === material.id)) {
-            courseId = cId
-            break
-          }
-        }
-      }
-      
       const response = await fetch('/api/student/complete-lesson', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -152,7 +153,7 @@ function MaterialViewerPageContent({ params }: MaterialViewerPageProps) {
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center gap-4">
               <Link 
-                href="/student"
+                href={courseId ? `/student/course/${courseId}` : '/student'}
                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
               >
                 <ArrowLeft className="h-4 w-4" />

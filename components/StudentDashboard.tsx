@@ -14,13 +14,31 @@ interface CourseProgress {
 export default function StudentDashboard() {
   const { user, signOut } = useStudentAuth()
   const [courseProgress, setCourseProgress] = useState<Record<string, CourseProgress>>({})
+  const [courseNames, setCourseNames] = useState<Record<string, string>>({})
   const [loadingProgress, setLoadingProgress] = useState(true)
 
   useEffect(() => {
     if (user?.enrolledCourses) {
+      fetchCourseNames()
       fetchProgressData()
     }
   }, [user])
+
+  const fetchCourseNames = async () => {
+    try {
+      const response = await fetch('/api/courses')
+      const data = await response.json()
+      if (data.success) {
+        const names: Record<string, string> = {}
+        data.courses.forEach((course: any) => {
+          names[course.courseId] = course.title
+        })
+        setCourseNames(names)
+      }
+    } catch (error) {
+      console.error('Error fetching course names:', error)
+    }
+  }
 
   const fetchProgressData = async () => {
     if (!user?.enrolledCourses) return
@@ -113,9 +131,9 @@ export default function StudentDashboard() {
                       <div className="flex items-center justify-between mb-3">
                         <div>
                           <h4 className="font-semibold text-gray-900">
-                            {courseId === 'ai-devops-cloud' ? 'AI Powered Software Development - Cloud, Generative AI, & Vibe Coding' : courseId}
+                            {courseNames[courseId] || courseId}
                           </h4>
-                          <p className="text-gray-600 text-sm">{completedLessons} of {totalLessons} lessons completed</p>
+                          <p className="text-gray-600 text-sm">{completedLessons} of {totalLessons} materials completed</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className={`px-2 py-1 rounded-full text-xs ${

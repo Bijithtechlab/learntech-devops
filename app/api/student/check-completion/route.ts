@@ -12,24 +12,28 @@ export async function GET(request: NextRequest) {
     const materialId = searchParams.get('materialId')
 
     if (!email || !materialId) {
-      return NextResponse.json({ error: 'Email and materialId required' }, { status: 400 })
+      return NextResponse.json({ success: false, message: 'Email and materialId required' }, { status: 400 })
     }
 
-    // Check if lesson is completed
     const command = new QueryCommand({
       TableName: 'student-progress',
-      KeyConditionExpression: 'id = :id',
+      IndexName: 'email-material-index',
+      KeyConditionExpression: 'email = :email AND materialId = :materialId',
       ExpressionAttributeValues: {
-        ':id': `${email}#ai-devops-cloud#${materialId}`
+        ':email': email,
+        ':materialId': materialId
       }
     })
 
     const result = await docClient.send(command)
-    const completed = result.Items && result.Items.length > 0
+    const completed = (result.Items?.length || 0) > 0
 
     return NextResponse.json({ success: true, completed })
   } catch (error) {
-    console.error('Check completion error:', error)
-    return NextResponse.json({ success: true, completed: false })
+    console.error('Error checking completion:', error)
+    return NextResponse.json(
+      { success: false, message: 'Failed to check completion' },
+      { status: 500 }
+    )
   }
 }

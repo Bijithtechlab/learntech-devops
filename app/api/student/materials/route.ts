@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
     const sections: any = {}
     const subSections: any = {}
     const materials: any[] = []
+    const quizzes: any[] = []
     
     for (const item of result.Items || []) {
       if (item.type === 'section') {
@@ -52,7 +53,8 @@ export async function GET(request: NextRequest) {
           title: item.title,
           description: item.description,
           order: item.order,
-          materials: [] // For compatibility with existing student portal
+          subSections: [],
+          quizzes: []
         }
       } else if (item.type === 'subsection') {
         if (!subSections[item.sectionId]) {
@@ -64,8 +66,6 @@ export async function GET(request: NextRequest) {
           description: item.description,
           order: item.order,
           sectionId: item.sectionId,
-          type: 'pdf', // Treat subsection as material for student view
-          isLocked: false,
           materials: []
         })
       } else if (item.type === 'pdf' && item.subSectionId) {
@@ -88,55 +88,51 @@ export async function GET(request: NextRequest) {
           pdfUrl: signedUrl || item.pdfUrl
         })
       } else if (item.type === 'quiz') {
-        // Add quiz as material to section (with high order to appear last)
-        if (sections[item.sectionId]) {
-          sections[item.sectionId].materials.push({
-            id: item.id,
-            title: item.title,
-            description: item.description,
-            type: 'quiz',
-            order: 9999 + item.order, // High order to ensure quizzes appear last
-            isLocked: item.isLocked,
-            estimatedTime: item.estimatedTime,
-            quizId: item.id
-          })
-        }
+        quizzes.push({
+          id: item.id,
+          title: item.title,
+          description: item.description,
+          order: item.order,
+          isLocked: item.isLocked,
+          estimatedTime: item.estimatedTime,
+          sectionId: item.sectionId
+        })
       }
     }
     
-    // Convert subsections to materials for student view
+    // Attach materials to subsections
+    materials.forEach(material => {
+      Object.keys(subSections).forEach(sectionId => {
+        const sectionSubSections = subSections[sectionId]
+        const targetSubSection = sectionSubSections.find((ss: any) => ss.id === material.subSectionId)
+        if (targetSubSection) {
+          targetSubSection.materials.push(material)
+        }
+      })
+    })
+    
+    // Attach subsections to sections
     Object.keys(subSections).forEach(sectionId => {
       if (sections[sectionId]) {
-        subSections[sectionId].forEach((subSection: any) => {
-          // Find materials for this subsection
-          const subSectionMaterials = materials.filter(m => m.subSectionId === subSection.id)
-          
-          // Add each material as a separate item
-          subSectionMaterials.forEach(material => {
-            sections[sectionId].materials.push({
-              id: material.id,
-              title: `${subSection.title} - ${material.title}`,
-              description: material.description,
-              type: 'pdf',
-              order: subSection.order * 100 + material.order, // Ensure proper ordering
-              pdfUrl: material.pdfUrl,
-              isLocked: material.isLocked,
-              estimatedTime: material.estimatedTime,
-              sectionId: sectionId,
-              sectionTitle: sections[sectionId].title
-            })
-          })
-        })
+        sections[sectionId].subSections = subSections[sectionId].sort((a: any, b: any) => a.order - b.order)
       }
     })
+    
+    // Attach quizzes to sections
+    quizzes.forEach(quiz => {
+      if (sections[quiz.sectionId]) {
+        sections[quiz.sectionId].quizzes.push(quiz)
+      }
+    })
+    
+    // Sort quizzes within each section
+    Object.values(sections).forEach((section: any) => {
+      section.quizzes.sort((a: any, b: any) => a.order - b.order)
+    })
 
-    // Sort sections and materials by order
+    // Sort sections by order
     const sectionsArray = Object.values(sections)
       .sort((a: any, b: any) => a.order - b.order)
-      .map((section: any) => ({
-        ...section,
-        materials: section.materials.sort((a: any, b: any) => a.order - b.order)
-      }))
 
     return NextResponse.json({ success: true, sections: sectionsArray })
   } catch (error: any) {

@@ -9,7 +9,20 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient)
 // POST - Create quiz
 export async function POST(request: NextRequest) {
   try {
-    const { courseId, sectionId, title, description, order, estimatedTime, isLocked } = await request.json()
+    const { 
+      courseId, 
+      sectionId, 
+      title, 
+      description, 
+      order, 
+      timeLimit, 
+      passingScore, 
+      maxAttempts, 
+      randomizeQuestions, 
+      isLocked, 
+      questions, 
+      totalPoints 
+    } = await request.json()
 
     const quiz = {
       id: randomUUID(),
@@ -18,8 +31,13 @@ export async function POST(request: NextRequest) {
       title,
       description,
       order,
-      estimatedTime,
+      timeLimit,
+      passingScore,
+      maxAttempts,
+      randomizeQuestions,
       isLocked,
+      questions,
+      totalPoints,
       type: 'quiz',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()

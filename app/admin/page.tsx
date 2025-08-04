@@ -139,12 +139,20 @@ export default function AdminPage() {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <a
-            href="/admin/course-materials"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Manage Course Materials
-          </a>
+          <div className="flex gap-4">
+            <a
+              href="/admin/courses"
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+            >
+              Manage Courses
+            </a>
+            <a
+              href="/admin/course-materials"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Manage Course Materials
+            </a>
+          </div>
         </div>
         
         {/* Pie Chart */}
