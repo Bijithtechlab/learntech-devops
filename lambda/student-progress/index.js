@@ -16,7 +16,8 @@ exports.handler = async (event) => {
       };
     }
 
-    const params = {
+    // Get completed materials
+    const progressParams = {
       TableName: 'student-progress',
       FilterExpression: 'email = :email AND courseId = :courseId',
       ExpressionAttributeValues: {
@@ -25,15 +26,40 @@ exports.handler = async (event) => {
       }
     };
 
-    const result = await dynamodb.scan(params).promise();
-    
-    const completedMaterials = result.Items || [];
+    const progressResult = await dynamodb.scan(progressParams).promise();
+    const completedMaterials = progressResult.Items || [];
+    const completedCount = completedMaterials.length;
+
+    // Get total materials for the course
+    const materialsParams = {
+      TableName: 'course-materials',
+      FilterExpression: 'courseId = :courseId AND #type = :type',
+      ExpressionAttributeNames: {
+        '#type': 'type'
+      },
+      ExpressionAttributeValues: {
+        ':courseId': courseId,
+        ':type': 'pdf'
+      }
+    };
+
+    const materialsResult = await dynamodb.scan(materialsParams).promise();
+    const totalMaterials = materialsResult.Items || [];
+    const totalCount = totalMaterials.length;
+
+    const progressPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         success: true, 
+        progress: {
+          courseId: courseId,
+          totalLessons: totalCount,
+          completedLessons: completedCount,
+          progressPercentage: progressPercentage
+        },
         completedMaterials: completedMaterials.map(item => item.materialId)
       })
     };
