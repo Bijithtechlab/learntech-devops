@@ -1,87 +1,87 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, PutCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb'
-import { randomUUID } from 'crypto'
 
-const dynamoClient = new DynamoDBClient({ region: 'ap-south-1' })
-const docClient = DynamoDBDocumentClient.from(dynamoClient)
+const LAMBDA_API_URL = 'https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/admin-sections'
 
-// POST - Create section
 export async function POST(request: NextRequest) {
   try {
-    const { courseId, title, description, order } = await request.json()
+    const body = await request.json()
 
-    const section = {
-      id: randomUUID(),
-      courseId,
-      title,
-      description,
-      order,
-      type: 'section',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
-
-    const command = new PutCommand({
-      TableName: 'course-materials',
-      Item: section
+    const response = await fetch(LAMBDA_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
     })
 
-    await docClient.send(command)
-    return NextResponse.json({ success: true, section })
-  } catch (error) {
-    console.error('Error creating section:', error)
-    return NextResponse.json({ success: false, message: 'Failed to create section' }, { status: 500 })
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Lambda function failed')
+    }
+
+    return NextResponse.json(data)
+  } catch (error: any) {
+    console.error('Error calling admin-sections Lambda:', error)
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Failed to create section',
+      message: error.message
+    }, { status: 500 })
   }
 }
 
-// PUT - Update section
 export async function PUT(request: NextRequest) {
   try {
-    const { id, title, description, order, courseId } = await request.json()
+    const body = await request.json()
 
-    const section = {
-      id,
-      courseId,
-      title,
-      description,
-      order,
-      type: 'section',
-      updatedAt: new Date().toISOString()
-    }
-
-    const command = new PutCommand({
-      TableName: 'course-materials',
-      Item: section
+    const response = await fetch(LAMBDA_API_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
     })
 
-    await docClient.send(command)
-    return NextResponse.json({ success: true, section })
-  } catch (error) {
-    console.error('Error updating section:', error)
-    return NextResponse.json({ success: false, message: 'Failed to update section' }, { status: 500 })
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Lambda function failed')
+    }
+
+    return NextResponse.json(data)
+  } catch (error: any) {
+    console.error('Error calling admin-sections Lambda:', error)
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Failed to update section',
+      message: error.message
+    }, { status: 500 })
   }
 }
 
-// DELETE - Remove section
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const sectionId = searchParams.get('id')
+    const id = searchParams.get('id')
 
-    if (!sectionId) {
-      return NextResponse.json({ success: false, message: 'Section ID required' }, { status: 400 })
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Section ID required' }, { status: 400 })
     }
 
-    const deleteCommand = new DeleteCommand({
-      TableName: 'course-materials',
-      Key: { id: sectionId }
+    const response = await fetch(`${LAMBDA_API_URL}?id=${id}`, {
+      method: 'DELETE'
     })
 
-    await docClient.send(deleteCommand)
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Error deleting section:', error)
-    return NextResponse.json({ success: false, message: 'Failed to delete section' }, { status: 500 })
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Lambda function failed')
+    }
+
+    return NextResponse.json(data)
+  } catch (error: any) {
+    console.error('Error calling admin-sections Lambda:', error)
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Failed to delete section',
+      message: error.message
+    }, { status: 500 })
   }
 }
