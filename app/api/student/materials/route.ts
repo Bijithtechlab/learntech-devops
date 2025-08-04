@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import AWS from 'aws-sdk'
 
 AWS.config.update({
-  region: 'ap-south-1',
-  accessKeyId: process.env.CUSTOM_AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.CUSTOM_AWS_SECRET_ACCESS_KEY
+  region: 'ap-south-1'
 })
 
 const dynamodb = new AWS.DynamoDB.DocumentClient()
