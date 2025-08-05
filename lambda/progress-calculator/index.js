@@ -112,12 +112,16 @@ async function calculateAndUpdateProgress(email, courseId) {
         // Convert percentage back to actual score
         const actualScore = Math.round((scorePercentage / 100) * totalPoints);
         
+        // Count total attempts for this quiz from all attempts
+        const quizAttemptCount = quizAttempts.filter(a => a.quizId === attempt.quizId).length;
+        
         quizScores.push({
           quizTitle: quizResult.Item.title,
           score: actualScore,
           totalPoints: totalPoints,
           passed: attempt.passed,
-          attemptedAt: attempt.attemptedAt
+          attemptedAt: attempt.attemptedAt,
+          attemptCount: quizAttemptCount
         });
       }
     }

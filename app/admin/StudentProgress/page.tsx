@@ -279,6 +279,7 @@ export default function StudentProgressPage() {
                           <tr>
                             <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Quiz</th>
                             <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Score</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Attempts</th>
                             <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                             <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
                           </tr>
@@ -290,6 +291,7 @@ export default function StudentProgressPage() {
                               <td className="px-4 py-2 text-sm text-gray-900">
                                 {quiz.score}/{quiz.totalPoints} ({Math.round((quiz.score / quiz.totalPoints) * 100)}%)
                               </td>
+                              <td className="px-4 py-2 text-sm text-gray-600">{quiz.attemptCount || 1}</td>
                               <td className="px-4 py-2">
                                 <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                                   quiz.passed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
