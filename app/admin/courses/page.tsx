@@ -30,7 +30,13 @@ export default function CourseManagementPage() {
   const fetchCourses = async () => {
     try {
       console.log('Fetching courses with timestamp:', Date.now())
-      const response = await fetch(`/api/courses/?t=${Date.now()}`)
+      const response = await fetch(`/api/courses/?t=${Date.now()}&r=${Math.random()}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      })
       const data = await response.json()
       console.log('Courses fetched:', data)
       if (data.success) {

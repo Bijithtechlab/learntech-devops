@@ -4,9 +4,15 @@ const LAMBDA_API_URL = 'https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/
 
 export async function GET() {
   try {
-    const lambdaUrl = `${LAMBDA_API_URL}?t=${Date.now()}`
+    const lambdaUrl = `${LAMBDA_API_URL}?t=${Date.now()}&r=${Math.random()}`
     console.log('Fetching courses from Lambda:', lambdaUrl)
-    const response = await fetch(lambdaUrl)
+    const response = await fetch(lambdaUrl, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      }
+    })
     const data = await response.json()
     console.log('Lambda response status:', response.status)
     
@@ -19,9 +25,11 @@ export async function GET() {
 
     return NextResponse.json(data, {
       headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
         'Pragma': 'no-cache',
-        'Expires': '0'
+        'Expires': '0',
+        'Last-Modified': new Date().toUTCString(),
+        'ETag': `"${Date.now()}-${Math.random()}"`
       }
     })
   } catch (error: any) {
