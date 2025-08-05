@@ -19,6 +19,8 @@ exports.handler = async (event) => {
       return await getQuiz(event);
     } else if (method === 'POST' && path.includes('/quiz-attempt')) {
       return await saveQuizAttempt(event);
+    } else if (method === 'GET' && path.includes('/quiz-attempt')) {
+      return await getQuizAttempts(event);
     }
     
     return {
@@ -216,5 +218,55 @@ async function saveQuizAttempt(event) {
     statusCode: 200,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ success: true, attempt: attemptItem })
+  };
+}
+
+// Get quiz attempts for a student and course
+async function getQuizAttempts(event) {
+  const { email, courseId } = event.queryStringParameters || {};
+
+  if (!email || !courseId) {
+    return {
+      statusCode: 400,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ success: false, error: 'Missing email or courseId' })
+    };
+  }
+
+  // Get all quiz attempts for the user
+  const attemptsResult = await dynamodb.scan({
+    TableName: 'quiz-attempts',
+    FilterExpression: 'email = :email',
+    ExpressionAttributeValues: {
+      ':email': email
+    }
+  }).promise();
+
+  const allAttempts = attemptsResult.Items || [];
+
+  // Filter attempts for quizzes belonging to the specific course
+  const courseAttempts = [];
+  for (const attempt of allAttempts) {
+    // Get quiz details to check course
+    const quizResult = await dynamodb.get({
+      TableName: 'course-materials',
+      Key: { id: attempt.quizId }
+    }).promise();
+
+    if (quizResult.Item && quizResult.Item.courseId === courseId) {
+      courseAttempts.push(attempt);
+    }
+  }
+
+  // Sort by attemptedAt to get latest attempts
+  courseAttempts.sort((a, b) => new Date(b.attemptedAt).getTime() - new Date(a.attemptedAt).getTime());
+
+  return {
+    statusCode: 200,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      success: true,
+      quizAttempts: courseAttempts
+    })
   };
 }

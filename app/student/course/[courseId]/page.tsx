@@ -58,6 +58,7 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
     if (!user?.email) return
     
     try {
+      console.log('Fetching quiz attempts for:', user.email, params.courseId)
       const response = await fetch(`/api/student/quiz-attempts?email=${user.email}&courseId=${params.courseId}&t=${Date.now()}&r=${Math.random()}`, {
         cache: 'no-store',
         headers: {
@@ -65,7 +66,10 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
           'Pragma': 'no-cache'
         }
       })
+      console.log('Quiz attempts response status:', response.status)
       const data = await response.json()
+      console.log('Quiz attempts data:', data)
+      
       if (data.success) {
         const attemptsMap: {[key: string]: {attempts: number, lastScore: number, passed: boolean}} = {}
         
@@ -92,7 +96,10 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
           }
         })
         
+        console.log('Quiz attempts map:', attemptsMap)
         setQuizAttempts(attemptsMap)
+      } else {
+        console.error('Quiz attempts API failed:', data)
       }
     } catch (error) {
       console.error('Error fetching quiz attempts:', error)
