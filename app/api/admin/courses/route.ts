@@ -1,58 +1,65 @@
 import { NextRequest, NextResponse } from 'next/server'
-import AWS from 'aws-sdk'
 
-AWS.config.update({
-  region: 'ap-south-1'
-})
-
-const dynamodb = new AWS.DynamoDB.DocumentClient()
+const LAMBDA_API_URL = 'https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/admin-courses'
 
 export async function POST(request: NextRequest) {
   try {
     const courseData = await request.json()
     
-    const params = {
-      TableName: 'learntechCourse',
-      Item: {
-        ...courseData,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
+    const response = await fetch(LAMBDA_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(courseData)
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Lambda function failed')
     }
 
-    await dynamodb.put(params).promise()
-    
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Error creating course:', error)
-    return NextResponse.json(
-      { success: false, error: 'Failed to create course' },
-      { status: 500 }
-    )
+    return NextResponse.json(data)
+  } catch (error: any) {
+    console.error('Error calling admin courses Lambda:', error)
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Failed to create course',
+      message: error.message
+    }, { status: 500 })
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
+    console.log('PUT request received for admin courses')
     const courseData = await request.json()
+    console.log('Course data received:', courseData)
     
-    const params = {
-      TableName: 'learntechCourse',
-      Item: {
-        ...courseData,
-        updatedAt: new Date().toISOString()
-      }
+    console.log('Calling Lambda URL:', LAMBDA_API_URL)
+    const response = await fetch(LAMBDA_API_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(courseData)
+    })
+
+    console.log('Lambda response status:', response.status)
+    const data = await response.json()
+    console.log('Lambda response data:', data)
+
+    if (!response.ok) {
+      console.error('Lambda response not ok:', response.status, data)
+      throw new Error(data.error || 'Lambda function failed')
     }
 
-    await dynamodb.put(params).promise()
-    
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Error updating course:', error)
-    return NextResponse.json(
-      { success: false, error: 'Failed to update course' },
-      { status: 500 }
-    )
+    console.log('Returning success response')
+    return NextResponse.json(data)
+  } catch (error: any) {
+    console.error('Error calling admin courses Lambda:', error)
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Failed to update course',
+      message: error.message
+    }, { status: 500 })
   }
 }
 
@@ -68,19 +75,23 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const params = {
-      TableName: 'learntechCourse',
-      Key: { courseId }
+    const response = await fetch(`${LAMBDA_API_URL}?courseId=${courseId}`, {
+      method: 'DELETE'
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Lambda function failed')
     }
 
-    await dynamodb.delete(params).promise()
-    
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Error deleting course:', error)
-    return NextResponse.json(
-      { success: false, error: 'Failed to delete course' },
-      { status: 500 }
-    )
+    return NextResponse.json(data)
+  } catch (error: any) {
+    console.error('Error calling admin courses Lambda:', error)
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Failed to delete course',
+      message: error.message
+    }, { status: 500 })
   }
 }

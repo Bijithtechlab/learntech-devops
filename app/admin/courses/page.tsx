@@ -29,9 +29,16 @@ export default function CourseManagementPage() {
 
   const fetchCourses = async () => {
     try {
-      const response = await fetch('/api/courses')
+      console.log('Fetching courses with timestamp:', Date.now())
+      const response = await fetch(`/api/courses/?t=${Date.now()}`)
       const data = await response.json()
+      console.log('Courses fetched:', data)
       if (data.success) {
+        console.log('Setting courses:', data.courses.length, 'courses')
+        console.log('Course titles:', data.courses.map(c => c.shortTitle))
+        const aiCourse = data.courses.find(c => c.courseId === 'ai-devops-cloud')
+        console.log('AI DevOps Cloud course status:', aiCourse?.status)
+        console.log('AI DevOps Cloud full course data:', aiCourse)
         setCourses(data.courses)
       }
     } catch (error) {
@@ -45,7 +52,7 @@ export default function CourseManagementPage() {
     if (!confirm('Are you sure you want to delete this course?')) return
 
     try {
-      const response = await fetch(`/api/admin/courses?courseId=${courseId}`, {
+      const response = await fetch(`/api/admin/courses/?courseId=${courseId}`, {
         method: 'DELETE'
       })
       const data = await response.json()
@@ -132,7 +139,7 @@ export default function CourseManagementPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Price:</span>
-                  <span className="font-medium">₹{course.price.toLocaleString()}</span>
+                  <span className="font-medium">₹{course.price?.toLocaleString() || '0'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Level:</span>
@@ -147,13 +154,13 @@ export default function CourseManagementPage() {
               <div className="mt-4">
                 <div className="text-xs text-gray-500 mb-2">Features:</div>
                 <div className="flex flex-wrap gap-1">
-                  {course.features.slice(0, 3).map((feature, index) => (
+                  {course.features?.slice(0, 3).map((feature, index) => (
                     <span key={index} className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
                       {feature}
                     </span>
-                  ))}
-                  {course.features.length > 3 && (
-                    <span className="text-gray-500 text-xs">+{course.features.length - 3} more</span>
+                  )) || []}
+                  {(course.features?.length || 0) > 3 && (
+                    <span className="text-gray-500 text-xs">+{(course.features?.length || 0) - 3} more</span>
                   )}
                 </div>
               </div>
@@ -179,6 +186,7 @@ export default function CourseManagementPage() {
             course={editingCourse}
             onClose={() => setShowModal(false)}
             onSuccess={() => {
+              console.log('Course modal onSuccess called')
               setShowModal(false)
               fetchCourses()
             }}
@@ -218,17 +226,26 @@ function CourseModal({ course, onClose, onSuccess }: {
         features: formData.features.split(',').map(f => f.trim()).filter(f => f)
       }
 
-      const response = await fetch('/api/admin/courses', {
+      console.log('Submitting course data:', courseData)
+      console.log('Method:', course ? 'PUT' : 'POST')
+      console.log('Is editing existing course:', !!course)
+
+      const response = await fetch('/api/admin/courses/', {
         method: course ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(courseData)
       })
 
+      console.log('Response status:', response.status)
       const data = await response.json()
+      console.log('Response data:', data)
+      
       if (data.success) {
+        console.log('Course saved successfully')
         onSuccess()
       } else {
-        alert('Failed to save course')
+        console.error('Failed to save course:', data)
+        alert(`Failed to save course: ${data.message || data.error}`)
       }
     } catch (error) {
       console.error('Error saving course:', error)

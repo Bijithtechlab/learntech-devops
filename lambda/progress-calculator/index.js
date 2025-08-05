@@ -81,7 +81,7 @@ async function calculateAndUpdateProgress(email, courseId) {
     const progressPercentage = totalMaterials.length > 0 ? 
       Math.round((completedMaterials.length / totalMaterials.length) * 100) : 0;
     
-    // Get quiz scores
+    // Get quiz scores - only latest attempt per quiz
     const quizAttemptsResult = await dynamodb.scan({
       TableName: 'quiz-attempts',
       FilterExpression: 'email = :email',
@@ -91,17 +91,29 @@ async function calculateAndUpdateProgress(email, courseId) {
     const quizAttempts = quizAttemptsResult.Items || [];
     const quizScores = [];
     
+    // Group attempts by quizId and get latest attempt
+    const latestAttempts = {};
     for (const attempt of quizAttempts) {
+      if (!latestAttempts[attempt.quizId] || 
+          new Date(attempt.attemptedAt) > new Date(latestAttempts[attempt.quizId].attemptedAt)) {
+        latestAttempts[attempt.quizId] = attempt;
+      }
+    }
+    
+    for (const attempt of Object.values(latestAttempts)) {
       const quizResult = await dynamodb.get({
         TableName: 'course-materials',
         Key: { id: attempt.quizId }
       }).promise();
       
       if (quizResult.Item && quizResult.Item.courseId === courseId) {
+        const totalPoints = parseInt(quizResult.Item.totalPoints) || 100;
+        const score = parseInt(attempt.score);
+        
         quizScores.push({
           quizTitle: quizResult.Item.title,
-          score: attempt.score,
-          totalPoints: quizResult.Item.totalPoints || 100,
+          score: score,
+          totalPoints: totalPoints,
           passed: attempt.passed,
           attemptedAt: attempt.attemptedAt
         });
