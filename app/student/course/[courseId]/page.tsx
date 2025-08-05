@@ -58,7 +58,13 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
     if (!user?.email) return
     
     try {
-      const response = await fetch(`/api/student/quiz-attempts?email=${user.email}&courseId=${params.courseId}`)
+      const response = await fetch(`/api/student/quiz-attempts?email=${user.email}&courseId=${params.courseId}&t=${Date.now()}&r=${Math.random()}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      })
       const data = await response.json()
       if (data.success) {
         const attemptsMap: {[key: string]: {attempts: number, lastScore: number, passed: boolean}} = {}
