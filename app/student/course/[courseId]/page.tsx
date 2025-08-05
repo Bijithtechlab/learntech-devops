@@ -16,6 +16,7 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
   const [courseSections, setCourseSections] = useState<CourseSection[]>([])
   const [courseTitle, setCourseTitle] = useState<string>('')
   const [completedMaterials, setCompletedMaterials] = useState<Set<string>>(new Set())
+  const [quizAttempts, setQuizAttempts] = useState<{[key: string]: {attempts: number, lastScore: number, passed: boolean}}>({})
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const [paymentError, setPaymentError] = useState<string | null>(null)
@@ -36,6 +37,7 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
     await fetchCourseTitle()
     await fetchCourseMaterials()
     await fetchCompletedMaterials()
+    await fetchQuizAttempts()
   }
 
   const fetchCompletedMaterials = async () => {
@@ -49,6 +51,45 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
       }
     } catch (error) {
       console.error('Error fetching completed materials:', error)
+    }
+  }
+
+  const fetchQuizAttempts = async () => {
+    if (!user?.email) return
+    
+    try {
+      const response = await fetch(`/api/student/quiz-attempts?email=${user.email}&courseId=${params.courseId}`)
+      const data = await response.json()
+      if (data.success) {
+        const attemptsMap: {[key: string]: {attempts: number, lastScore: number, passed: boolean}} = {}
+        
+        // Group attempts by quizId
+        const groupedAttempts: {[key: string]: any[]} = {}
+        data.quizAttempts.forEach((attempt: any) => {
+          if (!groupedAttempts[attempt.quizId]) {
+            groupedAttempts[attempt.quizId] = []
+          }
+          groupedAttempts[attempt.quizId].push(attempt)
+        })
+        
+        // For each quiz, get the latest attempt
+        Object.keys(groupedAttempts).forEach(quizId => {
+          const attempts = groupedAttempts[quizId]
+          // Sort by attemptedAt to get the latest
+          attempts.sort((a, b) => new Date(b.attemptedAt).getTime() - new Date(a.attemptedAt).getTime())
+          const latestAttempt = attempts[0]
+          
+          attemptsMap[quizId] = {
+            attempts: attempts.length,
+            lastScore: latestAttempt.score,
+            passed: latestAttempt.passed
+          }
+        })
+        
+        setQuizAttempts(attemptsMap)
+      }
+    } catch (error) {
+      console.error('Error fetching quiz attempts:', error)
     }
   }
 
@@ -321,29 +362,38 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
                     ))}
                     
                     {/* Section Quizzes */}
-                    {section.quizzes?.map((quiz) => (
-                      <div key={quiz.id} className="flex items-center justify-between py-2 pl-6 hover:bg-gray-50 rounded">
-                        <div className="flex items-center gap-3">
-                          <HelpCircle className="h-4 w-4 text-green-500" />
-                          <span className="text-gray-900">{quiz.title}</span>
-                          {quiz.isLocked && <Lock className="h-4 w-4 text-gray-400" />}
+                    {section.quizzes?.map((quiz) => {
+                      const attempt = quizAttempts[quiz.id]
+                      return (
+                        <div key={quiz.id} className="flex items-center justify-between py-3 pl-6 hover:bg-gray-50 rounded border-b border-gray-100 last:border-b-0">
+                          <div className="flex items-center gap-4 flex-1">
+                            <HelpCircle className="h-4 w-4 text-green-500" />
+                            <span className="font-medium text-gray-900 min-w-[200px]">{quiz.title}</span>
+                            <span className="text-gray-700">Quiz</span>
+                            {quiz.isLocked && <Lock className="h-4 w-4 text-gray-400" />}
+                          </div>
+                          <div className="flex items-center gap-3">
+                            {attempt && (
+                              <div className="text-xs text-gray-600">
+                                Attempts: {attempt.attempts} | Score: {attempt.lastScore}% | <span className={attempt.passed ? 'text-green-600' : 'text-red-600'}>{attempt.passed ? 'Passed' : 'Failed'}</span>
+                              </div>
+                            )}
+                            {!quiz.isLocked ? (
+                              <Link
+                                href={`/student/quiz/${quiz.id}`}
+                                className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                              >
+                                {attempt ? 'Retake Quiz' : 'Take Quiz'}
+                              </Link>
+                            ) : (
+                              <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded">
+                                Locked
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          {!quiz.isLocked ? (
-                            <Link
-                              href={`/student/quiz/${quiz.id}`}
-                              className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
-                            >
-                              Quiz
-                            </Link>
-                          ) : (
-                            <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded">
-                              Locked
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 </div>
               )}

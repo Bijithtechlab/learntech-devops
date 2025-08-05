@@ -108,11 +108,13 @@ async function calculateAndUpdateProgress(email, courseId) {
       
       if (quizResult.Item && quizResult.Item.courseId === courseId) {
         const totalPoints = parseInt(quizResult.Item.totalPoints) || 100;
-        const score = parseInt(attempt.score);
+        const scorePercentage = parseInt(attempt.score);
+        // Convert percentage back to actual score
+        const actualScore = Math.round((scorePercentage / 100) * totalPoints);
         
         quizScores.push({
           quizTitle: quizResult.Item.title,
-          score: score,
+          score: actualScore,
           totalPoints: totalPoints,
           passed: attempt.passed,
           attemptedAt: attempt.attemptedAt
@@ -152,6 +154,31 @@ async function calculateAndUpdateProgress(email, courseId) {
   } catch (error) {
     console.error(`Error calculating progress for ${email}:`, error);
     throw error;
+  }
+}
+
+async function handleStreamRecord(record) {
+  try {
+    if (record.eventName === 'INSERT' || record.eventName === 'MODIFY') {
+      const newImage = record.dynamodb.NewImage;
+      if (newImage && newImage.email && newImage.quizId) {
+        const email = newImage.email.S;
+        const quizId = newImage.quizId.S;
+        
+        // Get course ID from quiz
+        const quizResult = await dynamodb.get({
+          TableName: 'course-materials',
+          Key: { id: quizId }
+        }).promise();
+        
+        if (quizResult.Item && quizResult.Item.courseId) {
+          console.log(`Updating progress for ${email} in course ${quizResult.Item.courseId}`);
+          await calculateAndUpdateProgress(email, quizResult.Item.courseId);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error handling stream record:', error);
   }
 }
 

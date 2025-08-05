@@ -39,7 +39,13 @@ export default function StudentProgressPage() {
 
   const fetchStudentProgress = async () => {
     try {
-      const response = await fetch('/api/admin/student-progress')
+      const response = await fetch(`/api/admin/student-progress?t=${Date.now()}&r=${Math.random()}`, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      }
+    })
       const data = await response.json()
       if (data.success) {
         setStudents(data.students)
