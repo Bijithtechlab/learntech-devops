@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { Plus, Upload, Edit, Trash2, FileText, HelpCircle, X } from 'lucide-react'
+import { Plus, Upload, Edit, Trash2, FileText, HelpCircle, X, ChevronDown } from 'lucide-react'
 import QuestionBuilder from '@/components/QuestionBuilder'
 import AdminHeader from '@/components/AdminHeader'
 
@@ -58,6 +58,7 @@ export default function CourseManagementPage() {
   const [showEditSubSection, setShowEditSubSection] = useState<SubSection | null>(null)
   const [showAddMaterial, setShowAddMaterial] = useState<string | null>(null)
   const [showAddQuiz, setShowAddQuiz] = useState<string | null>(null)
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
 
 
   useEffect(() => {
@@ -134,6 +135,16 @@ export default function CourseManagementPage() {
     }
   }
 
+  const toggleSection = (sectionId: string) => {
+    const newExpanded = new Set(expandedSections)
+    if (newExpanded.has(sectionId)) {
+      newExpanded.delete(sectionId)
+    } else {
+      newExpanded.add(sectionId)
+    }
+    setExpandedSections(newExpanded)
+  }
+
   const handleDeleteSubSection = async (subSectionId: string) => {
     if (!confirm('Are you sure you want to delete this sub-section and all its materials?')) return
 
@@ -201,11 +212,21 @@ export default function CourseManagementPage() {
         <div className="space-y-6">
           {sections.map((section) => (
             <div key={section.id} className="bg-white rounded-lg shadow-sm border">
-              <div className="p-6 border-b border-gray-200">
+              <div 
+                className="p-6 border-b border-gray-200 cursor-pointer hover:bg-gray-50"
+                onClick={() => toggleSection(section.id)}
+              >
                 <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{section.title}</h3>
-                    <p className="text-gray-600">{section.description}</p>
+                  <div className="flex items-center gap-3">
+                    <ChevronDown 
+                      className={`h-5 w-5 text-gray-500 transition-transform ${
+                        expandedSections.has(section.id) ? 'rotate-0' : '-rotate-90'
+                      }`}
+                    />
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">{section.title}</h3>
+                      <p className="text-gray-600">{section.description}</p>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <button
@@ -239,7 +260,8 @@ export default function CourseManagementPage() {
                 </div>
               </div>
               
-              <div className="divide-y divide-gray-200">
+              {expandedSections.has(section.id) && (
+                <div className="divide-y divide-gray-200">
                 {/* Sub Sections */}
                 {section.subSections?.map((subSection) => (
                   <div key={subSection.id} className="bg-gray-50 border-l-4 border-purple-400">
@@ -354,7 +376,8 @@ export default function CourseManagementPage() {
                     No sub-sections or quizzes in this section yet
                   </div>
                 )}
-              </div>
+                </div>
+              )}
             </div>
           ))}
           
