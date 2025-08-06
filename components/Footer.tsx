@@ -7,9 +7,9 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-xl font-bold mb-4">LearnTechLab</h3>
+            <h3 className="text-xl font-bold mb-4">learntechlab</h3>
             <p className="text-gray-300 mb-4">
-              Transforming careers through comprehensive software development internships.
+              AI-Powered Learning for Tomorrow's Developers
             </p>
           </div>
           <div>
@@ -39,7 +39,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
-          <p className="text-gray-300">&copy; 2024 LearnTechLab. All rights reserved.</p>
+          <p className="text-gray-300">&copy; 2024 learntechlab. All rights reserved.</p>
         </div>
       </div>
     </footer>
