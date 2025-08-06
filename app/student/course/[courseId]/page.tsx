@@ -341,7 +341,7 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
                                   href={`/student/material/${material.id}`}
                                   className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
                                 >
-                                  View PDF
+                                  View
                                 </Link>
                               ) : (
                                 <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded">
@@ -366,7 +366,7 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
                                 Not Available
                               </span>
                               <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded">
-                                View PDF
+                                View
                               </span>
                             </div>
                           </div>
