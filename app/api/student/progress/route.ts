@@ -13,14 +13,26 @@ export async function GET(request: NextRequest) {
     }
 
     // Call Lambda function via API Gateway
-    const response = await fetch(`${LAMBDA_API_URL}?email=${encodeURIComponent(email)}&courseId=${encodeURIComponent(courseId)}`)
+    const response = await fetch(`${LAMBDA_API_URL}?email=${encodeURIComponent(email)}&courseId=${encodeURIComponent(courseId)}&t=${Date.now()}&r=${Math.random()}`, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      }
+    })
     const data = await response.json()
 
     if (!response.ok) {
       throw new Error(data.error || 'Lambda function failed')
     }
 
-    return NextResponse.json(data)
+    return NextResponse.json(data, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    })
   } catch (error: any) {
     console.error('Error calling student-progress Lambda:', error)
     return NextResponse.json({ 

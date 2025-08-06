@@ -317,14 +317,14 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
               {expandedSections.has(section.id) && (
                 <div className="p-6">
                   <div className="space-y-3">
-                    {section.subSections?.map((subSection) => (
+                    {section.subSections?.map((subSection, subIndex) => (
                       <div key={subSection.id}>
                         {/* Subsection Materials in Single Row */}
                         {subSection.materials?.map((material) => (
                           <div key={material.id} className="flex items-center justify-between py-3 pl-6 hover:bg-gray-50 rounded border-b border-gray-100 last:border-b-0">
                             <div className="flex items-center gap-4 flex-1">
                               <FileText className="h-4 w-4 text-blue-500" />
-                              <span className="font-medium text-gray-900 min-w-[200px]">{subSection.title}</span>
+                              <span className="font-medium text-gray-900 min-w-[200px]">{subIndex + 1}. {subSection.title}</span>
                               <span className="text-gray-700">{material.title}</span>
                               <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">PDF</span>
                             </div>
@@ -357,7 +357,7 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
                           <div className="flex items-center justify-between py-3 pl-6 hover:bg-gray-50 rounded border-b border-gray-100">
                             <div className="flex items-center gap-4 flex-1">
                               <FileText className="h-4 w-4 text-blue-500" />
-                              <span className="font-medium text-gray-900 min-w-[200px]">{subSection.title}</span>
+                              <span className="font-medium text-gray-900 min-w-[200px]">{subIndex + 1}. {subSection.title}</span>
                               <span className="text-gray-700">No materials</span>
                               <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">PDF</span>
                             </div>

@@ -47,7 +47,13 @@ export default function StudentDashboard() {
       const progressData: Record<string, CourseProgress> = {}
       
       for (const courseId of user.enrolledCourses) {
-        const response = await fetch(`/api/student/progress?email=${user.email}&courseId=${courseId}`)
+        const response = await fetch(`/api/student/progress?email=${user.email}&courseId=${courseId}&t=${Date.now()}&r=${Math.random()}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
+          }
+        })
         const data = await response.json()
         
         if (data.success) {
