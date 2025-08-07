@@ -1,43 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
-import AWS from 'aws-sdk'
 
-AWS.config.update({ region: 'ap-south-1' })
-const dynamodb = new AWS.DynamoDB.DocumentClient()
+const LAMBDA_API_URL = 'https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/admin-live-sessions'
 
 export async function PUT(request: NextRequest, { params }: { params: { sessionId: string } }) {
   try {
     const body = await request.json()
     const { sessionId } = params
 
-    const updateExpression = []
-    const expressionAttributeValues: any = {}
-    const expressionAttributeNames: any = {}
-
-    Object.keys(body).forEach(key => {
-      if (key !== 'id') {
-        updateExpression.push(`#${key} = :${key}`)
-        expressionAttributeNames[`#${key}`] = key
-        expressionAttributeValues[`:${key}`] = body[key]
-      }
+    const response = await fetch(`${LAMBDA_API_URL}/${sessionId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      },
+      body: JSON.stringify(body)
     })
+    
+    const data = await response.json()
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Lambda function failed')
+    }
 
-    expressionAttributeValues[':updatedAt'] = new Date().toISOString()
-    updateExpression.push('#updatedAt = :updatedAt')
-    expressionAttributeNames['#updatedAt'] = 'updatedAt'
-
-    await dynamodb.update({
-      TableName: 'lms-live-sessions',
-      Key: { id: sessionId },
-      UpdateExpression: `SET ${updateExpression.join(', ')}`,
-      ExpressionAttributeNames: expressionAttributeNames,
-      ExpressionAttributeValues: expressionAttributeValues
-    }).promise()
-
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Error updating live session:', error)
+    return NextResponse.json(data)
+  } catch (error: any) {
+    console.error('Error calling live-sessions Lambda:', error)
     return NextResponse.json(
-      { success: false, error: 'Failed to update live session' },
+      { success: false, error: 'Failed to update live session', message: error.message },
       { status: 500 }
     )
   }
@@ -47,16 +37,25 @@ export async function DELETE(request: NextRequest, { params }: { params: { sessi
   try {
     const { sessionId } = params
 
-    await dynamodb.delete({
-      TableName: 'lms-live-sessions',
-      Key: { id: sessionId }
-    }).promise()
+    const response = await fetch(`${LAMBDA_API_URL}/${sessionId}`, {
+      method: 'DELETE',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      }
+    })
+    
+    const data = await response.json()
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Lambda function failed')
+    }
 
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Error deleting live session:', error)
+    return NextResponse.json(data)
+  } catch (error: any) {
+    console.error('Error calling live-sessions Lambda:', error)
     return NextResponse.json(
-      { success: false, error: 'Failed to delete live session' },
+      { success: false, error: 'Failed to delete live session', message: error.message },
       { status: 500 }
     )
   }
