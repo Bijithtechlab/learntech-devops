@@ -23,6 +23,7 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
   const [loading, setLoading] = useState(true)
   const [paymentError, setPaymentError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'materials' | 'live-sessions'>('materials')
+  const [courseStatus, setCourseStatus] = useState<string>('')
 
 
   useEffect(() => {
@@ -159,6 +160,13 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
         const course = data.courses.find((c: any) => c.courseId === params.courseId)
         if (course) {
           setCourseTitle(course.title)
+          setCourseStatus(course.status)
+          
+          // Check if course is not active
+          if (course.status !== 'active') {
+            setPaymentError('COURSE_NOT_ACTIVE')
+            return
+          }
         }
       }
     } catch (error) {
@@ -211,6 +219,11 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
           return {
             title: 'Payment Required',
             message: 'Your payment is required to access course materials. Please contact info@learntechlab.com.'
+          }
+        case 'COURSE_NOT_ACTIVE':
+          return {
+            title: 'Course Not Available',
+            message: 'This course is not currently active. Please contact info@learntechlab.com for more information.'
           }
         default:
           return {

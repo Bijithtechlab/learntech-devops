@@ -239,42 +239,64 @@ async function getQuizAttempts(event) {
     };
   }
 
-  // Get all quiz attempts for the user
-  const attemptsResult = await dynamodb.scan({
-    TableName: 'quiz-attempts',
-    FilterExpression: 'email = :email',
-    ExpressionAttributeValues: {
-      ':email': email
-    }
-  }).promise();
-
-  const allAttempts = attemptsResult.Items || [];
-
-  // Filter attempts for quizzes belonging to the specific course
-  const courseAttempts = [];
-  for (const attempt of allAttempts) {
-    // Get quiz details to check course
-    const quizResult = await dynamodb.get({
+  try {
+    // First get all quizzes for the course
+    const quizzesResult = await dynamodb.scan({
       TableName: 'course-materials',
-      Key: { id: attempt.quizId }
+      FilterExpression: 'courseId = :courseId AND #type = :type',
+      ExpressionAttributeNames: { '#type': 'type' },
+      ExpressionAttributeValues: {
+        ':courseId': courseId,
+        ':type': 'quiz'
+      }
     }).promise();
 
-    if (quizResult.Item && quizResult.Item.courseId === courseId) {
-      courseAttempts.push(attempt);
+    const courseQuizIds = (quizzesResult.Items || []).map(quiz => quiz.id);
+
+    if (courseQuizIds.length === 0) {
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          success: true,
+          quizAttempts: []
+        })
+      };
     }
+
+    // Get attempts for this user and filter by course quiz IDs
+    const attemptsResult = await dynamodb.scan({
+      TableName: 'quiz-attempts',
+      FilterExpression: 'email = :email',
+      ExpressionAttributeValues: {
+        ':email': email
+      }
+    }).promise();
+
+    const courseAttempts = (attemptsResult.Items || [])
+      .filter(attempt => courseQuizIds.includes(attempt.quizId))
+      .sort((a, b) => new Date(b.attemptedAt).getTime() - new Date(a.attemptedAt).getTime());
+
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        success: true,
+        quizAttempts: courseAttempts
+      })
+    };
+  } catch (error) {
+    console.error('Error in getQuizAttempts:', error);
+    return {
+      statusCode: 500,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        success: false,
+        error: 'Failed to fetch quiz attempts',
+        message: error.message
+      })
+    };
   }
-
-  // Sort by attemptedAt to get latest attempts
-  courseAttempts.sort((a, b) => new Date(b.attemptedAt).getTime() - new Date(a.attemptedAt).getTime());
-
-  return {
-    statusCode: 200,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      success: true,
-      quizAttempts: courseAttempts
-    })
-  };
 }
 
 // Get quiz questions
