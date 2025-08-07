@@ -22,6 +22,7 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const [paymentError, setPaymentError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'materials' | 'live-sessions'>('materials')
 
 
   useEffect(() => {
@@ -301,27 +302,47 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Course Materials</h2>
-          <p className="text-gray-600">Access your learning materials and track your progress</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{displayTitle}</h2>
+          <p className="text-gray-600">Access your learning materials and live sessions</p>
         </div>
 
-        {/* Live Sessions Section */}
-        {liveSessions.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Video className="h-5 w-5 text-blue-500" />
-              Live Sessions
-            </h2>
-            <div className="space-y-4">
-              {liveSessions.map((session) => (
-                <SessionCard key={session.id} session={session} />
-              ))}
-            </div>
+        {/* Tabs */}
+        <div className="bg-white rounded-lg shadow-sm mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8 px-6">
+              <button
+                onClick={() => setActiveTab('materials')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'materials'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Course Materials
+              </button>
+              <button
+                onClick={() => setActiveTab('live-sessions')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+                  activeTab === 'live-sessions'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <Video className="h-4 w-4" />
+                Live Sessions
+                {liveSessions.length > 0 && (
+                  <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
+                    {liveSessions.length}
+                  </span>
+                )}
+              </button>
+            </nav>
           </div>
-        )}
+        </div>
 
-        {/* Course Sections */}
-        <div className="space-y-6">
+        {/* Tab Content */}
+        {activeTab === 'materials' && (
+          <div className="space-y-6">
           {courseSections.map((section) => (
             <div key={section.id} className="bg-white rounded-lg shadow-sm border">
               <div 
@@ -451,7 +472,26 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
               )}
             </div>
           ))}
-        </div>
+          </div>
+        )}
+
+        {activeTab === 'live-sessions' && (
+          <div className="space-y-6">
+            {liveSessions.length > 0 ? (
+              <div className="space-y-4">
+                {liveSessions.map((session) => (
+                  <SessionCard key={session.id} session={session} />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+                <Video className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Live Sessions Scheduled</h3>
+                <p className="text-gray-600">There are no upcoming live sessions for this course.</p>
+              </div>
+            )}
+          </div>
+        )}
       </main>
     </div>
   )
