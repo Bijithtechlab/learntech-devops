@@ -27,6 +27,10 @@ exports.handler = async (event) => {
       return await updateSubSection(event);
     } else if (method === 'DELETE' && path.includes('/admin-subsections')) {
       return await deleteSubSection(event);
+    } else if (method === 'POST' && path.includes('/admin-materials')) {
+      return await createMaterial(event);
+    } else if (method === 'DELETE' && path.includes('/admin-materials')) {
+      return await deleteMaterial(event);
     }
     
     return {
@@ -327,4 +331,107 @@ async function deleteSubSection(event) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ success: true })
   };
+}
+
+// Create material with S3 upload
+async function createMaterial(event) {
+  try {
+    const body = JSON.parse(event.body);
+    const { materialData, fileContent, fileName } = body;
+    
+    let s3Key = '';
+    let pdfUrl = '';
+
+    // Upload PDF to S3 if file provided
+    if (fileContent && fileName) {
+      s3Key = `${materialData.courseId}/materials/${randomUUID()}-${fileName}`;
+      
+      await s3.putObject({
+        Bucket: BUCKET_NAME,
+        Key: s3Key,
+        Body: Buffer.from(fileContent, 'base64'),
+        ContentType: 'application/pdf'
+      }).promise();
+      
+      pdfUrl = `https://${BUCKET_NAME}.s3.ap-south-1.amazonaws.com/${s3Key}`;
+    }
+
+    // Save material to DynamoDB
+    const material = {
+      id: randomUUID(),
+      courseId: materialData.courseId,
+      subSectionId: materialData.subSectionId,
+      title: materialData.title,
+      description: materialData.description,
+      type: 'pdf',
+      order: materialData.order,
+      isLocked: materialData.isLocked || false,
+      estimatedTime: materialData.estimatedTime,
+      s3Key: s3Key,
+      pdfUrl: pdfUrl,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    await dynamodb.put({
+      TableName: 'course-materials',
+      Item: material
+    }).promise();
+
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ success: true, material })
+    };
+  } catch (error) {
+    console.error('Error creating material:', error);
+    return {
+      statusCode: 500,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ success: false, message: 'Failed to create material' })
+    };
+  }
+}
+
+// Delete material and S3 file
+async function deleteMaterial(event) {
+  try {
+    const materialId = event.queryStringParameters?.id;
+    const s3Key = event.queryStringParameters?.s3Key;
+
+    if (!materialId) {
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ success: false, message: 'Material ID required' })
+      };
+    }
+
+    // Delete from S3 if s3Key provided
+    if (s3Key) {
+      await s3.deleteObject({
+        Bucket: BUCKET_NAME,
+        Key: s3Key
+      }).promise();
+    }
+
+    // Delete from DynamoDB
+    await dynamodb.delete({
+      TableName: 'course-materials',
+      Key: { id: materialId }
+    }).promise();
+
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ success: true })
+    };
+  } catch (error) {
+    console.error('Error deleting material:', error);
+    return {
+      statusCode: 500,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ success: false, message: 'Failed to delete material' })
+    };
+  }
 }

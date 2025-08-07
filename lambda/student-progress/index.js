@@ -13,6 +13,15 @@ exports.handler = async (event) => {
       return await getAdminStudentProgress();
     }
     
+    // Student completion checking endpoints
+    if (path && path.includes('student-completed-materials')) {
+      return await getCompletedMaterials(event);
+    }
+    
+    if (path && path.includes('student-check-completion')) {
+      return await checkCompletion(event);
+    }
+    
     const { email, courseId } = event.queryStringParameters || {};
 
     if (!email || !courseId) {
@@ -85,6 +94,104 @@ exports.handler = async (event) => {
     };
   }
 };
+
+// Get completed materials for a student and course
+async function getCompletedMaterials(event) {
+  try {
+    const { email, courseId } = event.queryStringParameters || {};
+
+    if (!email || !courseId) {
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ success: false, message: 'Email and courseId required' })
+      };
+    }
+
+    // Get all materials for the course
+    const materialsResult = await dynamodb.scan({
+      TableName: 'course-materials',
+      FilterExpression: 'courseId = :courseId AND #type = :type',
+      ExpressionAttributeNames: { '#type': 'type' },
+      ExpressionAttributeValues: { 
+        ':courseId': courseId,
+        ':type': 'pdf'
+      }
+    }).promise();
+
+    const courseMaterialIds = materialsResult.Items?.map(item => item.id) || [];
+
+    // Get completed materials for the user
+    const completedResult = await dynamodb.scan({
+      TableName: 'student-progress',
+      FilterExpression: 'email = :email',
+      ExpressionAttributeValues: { 
+        ':email': email
+      }
+    }).promise();
+    
+    // Filter completed materials that belong to this course
+    const completedMaterials = completedResult.Items
+      ?.filter(item => courseMaterialIds.includes(item.materialId))
+      ?.map(item => item.materialId) || [];
+
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        success: true,
+        completedMaterials
+      })
+    };
+  } catch (error) {
+    console.error('Error fetching completed materials:', error);
+    return {
+      statusCode: 500,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ success: false, message: 'Failed to fetch completed materials' })
+    };
+  }
+}
+
+// Check if a specific material is completed
+async function checkCompletion(event) {
+  try {
+    const { email, materialId } = event.queryStringParameters || {};
+
+    if (!email || !materialId) {
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ success: false, message: 'Email and materialId required' })
+      };
+    }
+
+    const result = await dynamodb.query({
+      TableName: 'student-progress',
+      IndexName: 'email-material-index',
+      KeyConditionExpression: 'email = :email AND materialId = :materialId',
+      ExpressionAttributeValues: {
+        ':email': email,
+        ':materialId': materialId
+      }
+    }).promise();
+
+    const completed = (result.Items?.length || 0) > 0;
+
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ success: true, completed })
+    };
+  } catch (error) {
+    console.error('Error checking completion:', error);
+    return {
+      statusCode: 500,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ success: false, message: 'Failed to check completion' })
+    };
+  }
+}
 
 // Get all students progress for admin from summary table
 async function getAdminStudentProgress() {

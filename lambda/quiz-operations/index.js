@@ -21,6 +21,12 @@ exports.handler = async (event) => {
       return await saveQuizAttempt(event);
     } else if (method === 'GET' && path.includes('/quiz-attempt')) {
       return await getQuizAttempts(event);
+    } else if (method === 'GET' && path.includes('/admin-quiz-questions')) {
+      return await getQuizQuestions(event);
+    } else if (method === 'POST' && path.includes('/admin-quiz-questions')) {
+      return await createQuizQuestion(event);
+    } else if (method === 'DELETE' && path.includes('/admin-quiz-questions')) {
+      return await deleteQuizQuestion(event);
     }
     
     return {
@@ -269,4 +275,112 @@ async function getQuizAttempts(event) {
       quizAttempts: courseAttempts
     })
   };
+}
+
+// Get quiz questions
+async function getQuizQuestions(event) {
+  try {
+    const quizId = event.queryStringParameters?.quizId;
+
+    if (!quizId) {
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ success: false, message: 'Quiz ID required' })
+      };
+    }
+
+    const result = await dynamodb.query({
+      TableName: 'quiz-questions',
+      IndexName: 'quiz-index',
+      KeyConditionExpression: 'quizId = :quizId',
+      ExpressionAttributeValues: { ':quizId': quizId }
+    }).promise();
+    
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        success: true, 
+        questions: result.Items?.sort((a, b) => a.order - b.order) || []
+      })
+    };
+  } catch (error) {
+    console.error('Error fetching quiz questions:', error);
+    return {
+      statusCode: 500,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ success: false, message: 'Failed to fetch questions' })
+    };
+  }
+}
+
+// Create/Update quiz question
+async function createQuizQuestion(event) {
+  try {
+    const questionData = JSON.parse(event.body);
+
+    const question = {
+      id: questionData.id || randomUUID(),
+      quizId: questionData.quizId,
+      question: questionData.question,
+      options: questionData.options,
+      correctAnswer: questionData.correctAnswer,
+      explanation: questionData.explanation,
+      order: questionData.order,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    await dynamodb.put({
+      TableName: 'quiz-questions',
+      Item: question
+    }).promise();
+
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ success: true, question })
+    };
+  } catch (error) {
+    console.error('Error creating question:', error);
+    return {
+      statusCode: 500,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ success: false, message: 'Failed to create question' })
+    };
+  }
+}
+
+// Delete quiz question
+async function deleteQuizQuestion(event) {
+  try {
+    const questionId = event.queryStringParameters?.id;
+
+    if (!questionId) {
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ success: false, message: 'Question ID required' })
+      };
+    }
+
+    await dynamodb.delete({
+      TableName: 'quiz-questions',
+      Key: { id: questionId }
+    }).promise();
+
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ success: true })
+    };
+  } catch (error) {
+    console.error('Error deleting question:', error);
+    return {
+      statusCode: 500,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ success: false, message: 'Failed to delete question' })
+    };
+  }
 }

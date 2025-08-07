@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb'
 
-const dynamoClient = new DynamoDBClient({ region: 'ap-south-1' })
-const docClient = DynamoDBDocumentClient.from(dynamoClient)
+const LAMBDA_API_URL = 'https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/student-check-completion'
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,24 +12,25 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Email and materialId required' }, { status: 400 })
     }
 
-    const command = new QueryCommand({
-      TableName: 'student-progress',
-      IndexName: 'email-material-index',
-      KeyConditionExpression: 'email = :email AND materialId = :materialId',
-      ExpressionAttributeValues: {
-        ':email': email,
-        ':materialId': materialId
+    const response = await fetch(`${LAMBDA_API_URL}?email=${encodeURIComponent(email)}&materialId=${encodeURIComponent(materialId)}`, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
       }
     })
+    
+    const data = await response.json()
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Lambda function failed')
+    }
 
-    const result = await docClient.send(command)
-    const completed = (result.Items?.length || 0) > 0
-
-    return NextResponse.json({ success: true, completed })
-  } catch (error) {
-    console.error('Error checking completion:', error)
+    return NextResponse.json(data)
+  } catch (error: any) {
+    console.error('Error calling student-check-completion Lambda:', error)
     return NextResponse.json(
-      { success: false, message: 'Failed to check completion' },
+      { success: false, message: 'Failed to check completion', error: error.message },
       { status: 500 }
     )
   }
