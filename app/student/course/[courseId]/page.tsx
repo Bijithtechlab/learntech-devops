@@ -2,8 +2,9 @@
 import { useState, useEffect } from 'react'
 import { StudentAuthProvider, useStudentAuth } from '@/contexts/StudentAuthContext'
 import { getCourseMaterials, CourseSection } from '@/data/courseMaterials'
-import { ArrowLeft, FileText, HelpCircle, Lock, Clock, CheckCircle, LogOut, ChevronDown } from 'lucide-react'
+import { ArrowLeft, FileText, HelpCircle, Lock, Clock, CheckCircle, LogOut, ChevronDown, Video } from 'lucide-react'
 import Link from 'next/link'
+import SessionCard from '@/components/LiveSessions/SessionCard'
 
 interface CourseContentPageProps {
   params: {
@@ -17,6 +18,7 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
   const [courseTitle, setCourseTitle] = useState<string>('')
   const [completedMaterials, setCompletedMaterials] = useState<Set<string>>(new Set())
   const [quizAttempts, setQuizAttempts] = useState<{[key: string]: {attempts: number, lastScore: number, passed: boolean}}>({})
+  const [liveSessions, setLiveSessions] = useState<any[]>([])
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const [paymentError, setPaymentError] = useState<string | null>(null)
@@ -30,6 +32,7 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
       }
       
       checkPaymentAndFetchMaterials()
+      fetchLiveSessions()
     }
   }, [user, params.courseId])
 
@@ -51,6 +54,27 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
       }
     } catch (error) {
       console.error('Error fetching completed materials:', error)
+    }
+  }
+
+  const fetchLiveSessions = async () => {
+    if (!user?.email) return
+    
+    try {
+      const response = await fetch(`/api/student/live-sessions?courseId=${params.courseId}&email=${user.email}&t=${Date.now()}&r=${Math.random()}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      })
+      const data = await response.json()
+      
+      if (data.success) {
+        setLiveSessions(data.sessions || [])
+      }
+    } catch (error) {
+      console.error('Error fetching live sessions:', error)
     }
   }
 
@@ -280,6 +304,21 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Course Materials</h2>
           <p className="text-gray-600">Access your learning materials and track your progress</p>
         </div>
+
+        {/* Live Sessions Section */}
+        {liveSessions.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Video className="h-5 w-5 text-blue-500" />
+              Live Sessions
+            </h2>
+            <div className="space-y-4">
+              {liveSessions.map((session) => (
+                <SessionCard key={session.id} session={session} />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Course Sections */}
         <div className="space-y-6">

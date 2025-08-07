@@ -11,7 +11,7 @@ export default function AdminPage() {
           <h2 className="text-2xl font-semibold mb-4">Welcome to <span className="text-gray-900">learn</span><span className="text-blue-600">techlab</span> <span className="text-gray-700">LMS</span></h2>
           <p className="text-gray-600 mb-6">Learning Management System - Manage your courses, materials, and registrations from here.</p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
             <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
               <h3 className="text-lg font-semibold text-purple-800 mb-2">Course Registrations</h3>
               <p className="text-purple-600 text-sm mb-4">View and manage student registrations</p>
@@ -53,6 +53,17 @@ export default function AdminPage() {
                 className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
               >
                 Manage Materials
+              </a>
+            </div>
+            
+            <div className="bg-red-50 p-6 rounded-lg border border-red-200">
+              <h3 className="text-lg font-semibold text-red-800 mb-2">Live Sessions</h3>
+              <p className="text-red-600 text-sm mb-4">Schedule and manage Zoom sessions</p>
+              <a
+                href="/admin/live-sessions"
+                className="inline-block bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
+              >
+                Manage Sessions
               </a>
             </div>
           </div>
