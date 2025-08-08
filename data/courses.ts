@@ -22,7 +22,7 @@ export const courses: Course[] = [
     level: 'Intermediate',
     category: 'Technology',
     features: ['Live Sessions', 'Hands-on Projects', 'AI Integration', 'Cloud Deployment'],
-    status: 'active'
+    status: 'coming-soon'
   },
   {
     id: 'smart-coding-revolution',
@@ -94,6 +94,18 @@ export const courses: Course[] = [
     level: 'Beginner',
     category: 'Management',
     features: ['Jira Administration', 'Agile Workflows', 'Scrum & Kanban', 'Reporting & Analytics'],
+    status: 'coming-soon'
+  },
+  {
+    id: 'Agentic_AI',
+    title: 'Agentic AI Engineering: Build, Integrate, Automate',
+    shortTitle: 'Agentic AI - BIA',
+    description: 'Agentic AI Engineering: Build, Integrate, Automate is a hands-on, end-to-end program designed to equip learners with the practical skills and strategic understanding required to design, develop, and deploy autonomous AI agents.\n\nThis course bridges the gap between traditional AI development and the emerging paradigm of agentic systems, where AI solutions can reason, act, and collaborate with minimal human input. Participants will learn how to build agent-based applications, integrate them into real-world workflows, and automate complex tasks across multiple domains using state-of-the-art tools and frameworks.\n\nWhether you\'re a developer, engineer, or tech-savvy professional, this course empowers you to harness the power of AI agents to create intelligent, adaptive, and scalable systems.',
+    duration: '4 Weeks',
+    price: 4999,
+    level: 'Beginner',
+    category: 'Technology',
+    features: ['Live Session', 'Hands on Projects', 'AI Integration'],
     status: 'coming-soon'
   }
 ]
