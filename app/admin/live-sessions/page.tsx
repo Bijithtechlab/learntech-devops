@@ -264,7 +264,9 @@ function AddSessionModal({ courseId, onClose, onSuccess }: {
     zoomMeetingId: '',
     zoomJoinUrl: '',
     zoomPassword: '',
-    maxParticipants: 100
+    maxParticipants: 100,
+    status: 'scheduled',
+    recordingUrl: ''
   })
   const [saving, setSaving] = useState(false)
 
@@ -404,16 +406,40 @@ function AddSessionModal({ courseId, onClose, onSuccess }: {
               />
             </div>
 
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Max Participants</label>
+                <input
+                  type="number"
+                  value={formData.maxParticipants}
+                  onChange={(e) => setFormData({...formData, maxParticipants: parseInt(e.target.value)})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  min="1"
+                  max="500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => setFormData({...formData, status: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="scheduled">Scheduled</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
+            </div>
+            
             <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Max Participants</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Recording URL (Optional)</label>
               <input
-                type="number"
-                value={formData.maxParticipants}
-                onChange={(e) => setFormData({...formData, maxParticipants: parseInt(e.target.value)})}
+                type="url"
+                value={formData.recordingUrl}
+                onChange={(e) => setFormData({...formData, recordingUrl: e.target.value})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                min="1"
-                max="500"
-                required
+                placeholder="https://zoom.us/rec/..."
               />
             </div>
           </div>
@@ -454,7 +480,9 @@ function EditSessionModal({ session, onClose, onSuccess }: {
     zoomMeetingId: session.zoomMeetingId,
     zoomJoinUrl: session.zoomJoinUrl,
     zoomPassword: session.zoomPassword,
-    maxParticipants: session.maxParticipants
+    maxParticipants: session.maxParticipants,
+    status: session.status || 'scheduled',
+    recordingUrl: session.recordingUrl || ''
   })
   const [saving, setSaving] = useState(false)
 
@@ -591,16 +619,40 @@ function EditSessionModal({ session, onClose, onSuccess }: {
               />
             </div>
 
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Max Participants</label>
+                <input
+                  type="number"
+                  value={formData.maxParticipants}
+                  onChange={(e) => setFormData({...formData, maxParticipants: parseInt(e.target.value)})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  min="1"
+                  max="500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => setFormData({...formData, status: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="scheduled">Scheduled</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
+            </div>
+            
             <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Max Participants</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Recording URL (Optional)</label>
               <input
-                type="number"
-                value={formData.maxParticipants}
-                onChange={(e) => setFormData({...formData, maxParticipants: parseInt(e.target.value)})}
+                type="url"
+                value={formData.recordingUrl}
+                onChange={(e) => setFormData({...formData, recordingUrl: e.target.value})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                min="1"
-                max="500"
-                required
+                placeholder="https://zoom.us/rec/..."
               />
             </div>
           </div>

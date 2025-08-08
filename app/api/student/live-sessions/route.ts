@@ -31,16 +31,57 @@ export async function GET(request: NextRequest) {
 
     const sessions = data.sessions || []
     
-    // Filter future sessions and sort by date
-    const now = new Date().toISOString()
-    const upcomingSessions = sessions
-      .filter((session: any) => session.scheduledDate > now)
-      .sort((a: any, b: any) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime())
+    // Manual status takes precedence over calculated status
+    const now = new Date()
+    const processedSessions = sessions.map((session: any) => {
+      const sessionDate = new Date(session.scheduledDate)
+      const sessionEndTime = new Date(sessionDate.getTime() + (session.duration * 60000))
+      const joinTime = new Date(sessionDate.getTime() - (15 * 60000)) // 15 mins before
+      
+      let calculatedStatus = 'upcoming'
+      let canJoin = false
+      
+      // Calculate status based on timing
+      if (now > sessionEndTime) {
+        calculatedStatus = 'completed'
+      } else if (now >= sessionDate && now <= sessionEndTime) {
+        calculatedStatus = 'live'
+        canJoin = true
+      } else if (now >= joinTime) {
+        calculatedStatus = 'upcoming'
+        canJoin = true
+      }
+      
+      // Use manual status if set, otherwise use calculated status
+      const finalStatus = session.status && session.status !== 'scheduled' ? session.status : calculatedStatus
+      
+      return {
+        ...session,
+        status: finalStatus,
+        canJoin,
+        joinTime: joinTime.toISOString(),
+        endTime: sessionEndTime.toISOString()
+      }
+    })
+    
+    // Separate upcoming/live and past sessions based on calculated status
+    const upcomingSessions = processedSessions
+      .filter(session => session.status !== 'completed')
+      .sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime())
+      
+    const pastSessions = processedSessions
+      .filter(session => session.status === 'completed')
+      .sort((a, b) => new Date(b.scheduledDate).getTime() - new Date(a.scheduledDate).getTime())
 
     return NextResponse.json({ 
       success: true, 
-      sessions: upcomingSessions,
-      totalSessions: sessions.length 
+      upcomingSessions,
+      pastSessions,
+      totalSessions: sessions.length,
+      debug: {
+        currentTime: now.toISOString(),
+        processedCount: processedSessions.length
+      }
     }, {
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',

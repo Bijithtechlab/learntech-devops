@@ -18,7 +18,8 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
   const [courseTitle, setCourseTitle] = useState<string>('')
   const [completedMaterials, setCompletedMaterials] = useState<Set<string>>(new Set())
   const [quizAttempts, setQuizAttempts] = useState<{[key: string]: {attempts: number, lastScore: number, passed: boolean}}>({})
-  const [liveSessions, setLiveSessions] = useState<any[]>([])
+  const [upcomingSessions, setUpcomingSessions] = useState<any[]>([])
+  const [pastSessions, setPastSessions] = useState<any[]>([])
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const [paymentError, setPaymentError] = useState<string | null>(null)
@@ -73,7 +74,8 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
       const data = await response.json()
       
       if (data.success) {
-        setLiveSessions(data.sessions || [])
+        setUpcomingSessions(data.upcomingSessions || [])
+        setPastSessions(data.pastSessions || [])
       }
     } catch (error) {
       console.error('Error fetching live sessions:', error)
@@ -343,9 +345,9 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
               >
                 <Video className="h-4 w-4" />
                 Live Sessions
-                {liveSessions.length > 0 && (
+                {(upcomingSessions.length + pastSessions.length) > 0 && (
                   <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
-                    {liveSessions.length}
+                    {upcomingSessions.length + pastSessions.length}
                   </span>
                 )}
               </button>
@@ -490,17 +492,36 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
 
         {activeTab === 'live-sessions' && (
           <div className="space-y-6">
-            {liveSessions.length > 0 ? (
-              <div className="space-y-4">
-                {liveSessions.map((session) => (
-                  <SessionCard key={session.id} session={session} />
-                ))}
+            {/* Upcoming Sessions */}
+            {upcomingSessions.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Sessions</h3>
+                <div className="space-y-4">
+                  {upcomingSessions.map((session) => (
+                    <SessionCard key={session.id} session={session} />
+                  ))}
+                </div>
               </div>
-            ) : (
+            )}
+            
+            {/* Past Sessions */}
+            {pastSessions.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Past Sessions</h3>
+                <div className="space-y-4">
+                  {pastSessions.map((session) => (
+                    <SessionCard key={session.id} session={session} />
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Empty State */}
+            {upcomingSessions.length === 0 && pastSessions.length === 0 && (
               <div className="bg-white rounded-lg shadow-sm p-8 text-center">
                 <Video className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Live Sessions Scheduled</h3>
-                <p className="text-gray-600">There are no upcoming live sessions for this course.</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Live Sessions</h3>
+                <p className="text-gray-600">There are no live sessions scheduled for this course.</p>
               </div>
             )}
           </div>

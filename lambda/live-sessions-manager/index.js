@@ -102,7 +102,7 @@ async function createSession(data) {
     maxParticipants: parseInt(maxParticipants),
     enrolledStudents: [],
     status: 'scheduled',
-    recordingUrl: null,
+    recordingUrl: data.recordingUrl || null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
@@ -136,7 +136,11 @@ async function updateSession(sessionId, data) {
     if (key !== 'id') {
       updateExpression.push(`#${key} = :${key}`);
       expressionAttributeNames[`#${key}`] = key;
-      expressionAttributeValues[`:${key}`] = data[key];
+      if (key === 'duration' || key === 'maxParticipants') {
+        expressionAttributeValues[`:${key}`] = parseInt(data[key]) || data[key];
+      } else {
+        expressionAttributeValues[`:${key}`] = data[key];
+      }
     }
   });
 

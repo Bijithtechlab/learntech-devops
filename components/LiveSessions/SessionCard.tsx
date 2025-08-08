@@ -1,5 +1,5 @@
 'use client'
-import { Calendar, Clock, Users, Video } from 'lucide-react'
+import { Calendar, Clock, Users, Video, Play, ExternalLink, CheckCircle } from 'lucide-react'
 
 interface SessionCardProps {
   session: {
@@ -14,32 +14,43 @@ interface SessionCardProps {
     zoomPassword: string
     maxParticipants: number
     enrolledStudents: string[]
-    status: string
+    status: 'upcoming' | 'live' | 'completed'
+    canJoin?: boolean
+    recordingUrl?: string
+    joinTime?: string
+    endTime?: string
   }
 }
 
 export default function SessionCard({ session }: SessionCardProps) {
   const sessionDate = new Date(session.scheduledDate)
-  const now = new Date()
-  const isUpcoming = sessionDate > now
-  const isToday = sessionDate.toDateString() === now.toDateString()
-  const timeUntil = sessionDate.getTime() - now.getTime()
-  const hoursUntil = Math.floor(timeUntil / (1000 * 60 * 60))
-  const minutesUntil = Math.floor((timeUntil % (1000 * 60 * 60)) / (1000 * 60))
-
-  const getStatusColor = () => {
-    if (!isUpcoming) return 'bg-gray-100 text-gray-800'
-    if (isToday && hoursUntil <= 1) return 'bg-green-100 text-green-800'
-    if (isToday) return 'bg-yellow-100 text-yellow-800'
-    return 'bg-blue-100 text-blue-800'
+  
+  const getStatusBadge = () => {
+    switch (session.status) {
+      case 'live':
+        return (
+          <span className="bg-red-100 text-red-800 text-xs font-medium px-3 py-1 rounded-full flex items-center gap-1">
+            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+            LIVE
+          </span>
+        )
+      case 'completed':
+        return (
+          <span className="bg-gray-100 text-gray-800 text-xs font-medium px-3 py-1 rounded-full flex items-center gap-1">
+            <CheckCircle className="w-3 h-3" />
+            COMPLETED
+          </span>
+        )
+      default:
+        return (
+          <span className="bg-blue-100 text-blue-800 text-xs font-medium px-3 py-1 rounded-full">
+            UPCOMING
+          </span>
+        )
+    }
   }
+  
 
-  const getStatusText = () => {
-    if (!isUpcoming) return 'Completed'
-    if (isToday && hoursUntil <= 1) return 'Starting Soon'
-    if (isToday) return 'Today'
-    return 'Upcoming'
-  }
 
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow">
@@ -51,9 +62,7 @@ export default function SessionCard({ session }: SessionCardProps) {
             <p className="text-gray-600 text-sm">{session.description}</p>
           </div>
         </div>
-        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor()}`}>
-          {getStatusText()}
-        </span>
+        {getStatusBadge()}
       </div>
 
       <div className="space-y-2 mb-4">
@@ -73,37 +82,48 @@ export default function SessionCard({ session }: SessionCardProps) {
         </div>
       </div>
 
-      {isUpcoming && (
-        <div className="border-t pt-4">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-600">
-              {isToday && hoursUntil <= 1 ? (
-                <span className="text-green-600 font-medium">
-                  Starts in {hoursUntil > 0 ? `${hoursUntil}h ` : ''}{minutesUntil}m
-                </span>
-              ) : (
-                <span>Meeting ID: {session.zoomMeetingId}</span>
-              )}
-            </div>
-            
-            <a
-              href={session.zoomJoinUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-            >
-              <Video className="h-4 w-4" />
-              Join Session
-            </a>
+      <div className="border-t pt-4">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-gray-600">
+            {session.status !== 'completed' && !session.canJoin && (
+              <span>Join button will be available 15 minutes before the session starts</span>
+            )}
           </div>
           
-          {session.zoomPassword && (
-            <div className="mt-2 text-xs text-gray-500">
-              Password: {session.zoomPassword}
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            {session.status === 'completed' && session.recordingUrl && (
+              <a
+                href={session.recordingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+              >
+                <Play className="h-4 w-4" />
+                Watch Recording
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
+            
+            {session.status !== 'completed' && (
+              <a
+                href={session.canJoin ? session.zoomJoinUrl : '#'}
+                target={session.canJoin ? '_blank' : '_self'}
+                rel="noopener noreferrer"
+                className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+                  session.canJoin
+                    ? 'bg-blue-600 text-white hover:bg-blue-700'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+                onClick={!session.canJoin ? (e) => e.preventDefault() : undefined}
+              >
+                <Video className="h-4 w-4" />
+                {session.status === 'live' ? 'Join Live Session' : 'Join Session'}
+                {session.canJoin && <ExternalLink className="h-3 w-3" />}
+              </a>
+            )}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }
