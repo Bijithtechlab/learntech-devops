@@ -7,6 +7,14 @@ const dynamodb = new AWS.DynamoDB.DocumentClient();
 const s3 = new AWS.S3();
 const BUCKET_NAME = 'learntechlab-course-materials';
 
+// Helper function for CORS headers
+const corsHeaders = {
+  'Content-Type': 'application/json',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
+  'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS'
+};
+
 exports.handler = async (event) => {
   try {
     const method = event.httpMethod;
@@ -31,11 +39,15 @@ exports.handler = async (event) => {
       return await createMaterial(event);
     } else if (method === 'DELETE' && path.includes('/admin-materials')) {
       return await deleteMaterial(event);
+    } else if (method === 'POST' && path.includes('/admin-videos')) {
+      return await createVideo(event);
+    } else if (method === 'DELETE' && path.includes('/admin-videos')) {
+      return await deleteVideo(event);
     }
     
     return {
       statusCode: 404,
-      headers: { 'Content-Type': 'application/json' },
+      headers: corsHeaders,
       body: JSON.stringify({ success: false, error: 'Not found' })
     };
     
@@ -43,7 +55,7 @@ exports.handler = async (event) => {
     console.error('Error in admin-materials Lambda:', error);
     return {
       statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: corsHeaders,
       body: JSON.stringify({ 
         success: false, 
         error: 'Internal server error',
@@ -60,7 +72,7 @@ async function getCourseMaterials(event) {
   if (!courseId) {
     return {
       statusCode: 400,
-      headers: { 'Content-Type': 'application/json' },
+      headers: corsHeaders,
       body: JSON.stringify({ success: false, message: 'Course ID required' })
     };
   }
@@ -73,10 +85,11 @@ async function getCourseMaterials(event) {
 
   const result = await dynamodb.scan(params).promise();
   
-  // Group by sections, subsections, and materials
+  // Group by sections, subsections, materials, and videos
   const sections = {};
   const subSections = {};
   const materials = [];
+  const videos = [];
   const quizzes = [];
   
   for (const item of result.Items || []) {
@@ -120,6 +133,8 @@ async function getCourseMaterials(event) {
         ...item,
         pdfUrl: signedUrl
       });
+    } else if (item.type === 'video' && item.subSectionId) {
+      videos.push(item);
     } else if (item.type === 'quiz') {
       quizzes.push({
         id: item.id,
@@ -140,6 +155,17 @@ async function getCourseMaterials(event) {
       const targetSubSection = sectionSubSections.find(ss => ss.id === material.subSectionId);
       if (targetSubSection) {
         targetSubSection.materials.push(material);
+      }
+    });
+  });
+  
+  // Attach videos to subsections
+  videos.forEach(video => {
+    Object.keys(subSections).forEach(sectionId => {
+      const sectionSubSections = subSections[sectionId];
+      const targetSubSection = sectionSubSections.find(ss => ss.id === video.subSectionId);
+      if (targetSubSection) {
+        targetSubSection.video = video;
       }
     });
   });
@@ -167,7 +193,7 @@ async function getCourseMaterials(event) {
 
   return {
     statusCode: 200,
-    headers: { 'Content-Type': 'application/json' },
+    headers: corsHeaders,
     body: JSON.stringify({ success: true, sections: sectionsArray })
   };
 }
@@ -195,7 +221,7 @@ async function createSection(event) {
 
   return {
     statusCode: 200,
-    headers: { 'Content-Type': 'application/json' },
+    headers: corsHeaders,
     body: JSON.stringify({ success: true, section: sectionItem })
   };
 }
@@ -220,7 +246,7 @@ async function updateSection(event) {
 
   return {
     statusCode: 200,
-    headers: { 'Content-Type': 'application/json' },
+    headers: corsHeaders,
     body: JSON.stringify({ success: true })
   };
 }
@@ -247,7 +273,7 @@ async function deleteSection(event) {
 
   return {
     statusCode: 200,
-    headers: { 'Content-Type': 'application/json' },
+    headers: corsHeaders,
     body: JSON.stringify({ success: true })
   };
 }
@@ -276,7 +302,7 @@ async function createSubSection(event) {
 
   return {
     statusCode: 200,
-    headers: { 'Content-Type': 'application/json' },
+    headers: corsHeaders,
     body: JSON.stringify({ success: true, subSection: subSectionItem })
   };
 }
@@ -301,7 +327,7 @@ async function updateSubSection(event) {
 
   return {
     statusCode: 200,
-    headers: { 'Content-Type': 'application/json' },
+    headers: corsHeaders,
     body: JSON.stringify({ success: true })
   };
 }
@@ -328,7 +354,7 @@ async function deleteSubSection(event) {
 
   return {
     statusCode: 200,
-    headers: { 'Content-Type': 'application/json' },
+    headers: corsHeaders,
     body: JSON.stringify({ success: true })
   };
 }
@@ -380,14 +406,14 @@ async function createMaterial(event) {
 
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: corsHeaders,
       body: JSON.stringify({ success: true, material })
     };
   } catch (error) {
     console.error('Error creating material:', error);
     return {
       statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: corsHeaders,
       body: JSON.stringify({ success: false, message: 'Failed to create material' })
     };
   }
@@ -402,7 +428,7 @@ async function deleteMaterial(event) {
     if (!materialId) {
       return {
         statusCode: 400,
-        headers: { 'Content-Type': 'application/json' },
+        headers: corsHeaders,
         body: JSON.stringify({ success: false, message: 'Material ID required' })
       };
     }
@@ -423,15 +449,102 @@ async function deleteMaterial(event) {
 
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: corsHeaders,
       body: JSON.stringify({ success: true })
     };
   } catch (error) {
     console.error('Error deleting material:', error);
     return {
       statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: corsHeaders,
       body: JSON.stringify({ success: false, message: 'Failed to delete material' })
+    };
+  }
+}
+
+// Create video (YouTube/OneDrive)
+async function createVideo(event) {
+  try {
+    const body = JSON.parse(event.body);
+    const { courseId, subSectionId, videoType, videoUrl, youtubeId, originalUrl } = body;
+
+    const videoItem = {
+      id: `video-${subSectionId}`,
+      courseId,
+      subSectionId,
+      type: 'video',
+      videoUrl,
+      youtubeId: youtubeId || null,
+      originalUrl: originalUrl || videoUrl,
+      videoDuration: 0,
+      videoSize: 0,
+      videoType: videoType || 'youtube',
+      videoStatus: 'ready',
+      uploadedAt: new Date().toISOString()
+    };
+
+    await dynamodb.put({
+      TableName: 'course-materials',
+      Item: videoItem
+    }).promise();
+
+    return {
+      statusCode: 200,
+      headers: corsHeaders,
+      body: JSON.stringify({ success: true, video: videoItem })
+    };
+  } catch (error) {
+    console.error('Error creating video:', error);
+    return {
+      statusCode: 500,
+      headers: corsHeaders,
+      body: JSON.stringify({ success: false, message: 'Failed to create video' })
+    };
+  }
+}
+
+// Delete video
+async function deleteVideo(event) {
+  try {
+    const courseId = event.queryStringParameters?.courseId;
+    const subSectionId = event.queryStringParameters?.subSectionId;
+    const videoId = `video-${subSectionId}`;
+
+    // Get video data first
+    const getParams = {
+      TableName: 'course-materials',
+      Key: { id: videoId }
+    };
+
+    const result = await dynamodb.get(getParams).promise();
+    const videoData = result.Item;
+
+    // Delete from S3 if it's an uploaded video
+    if (videoData && videoData.videoUrl && videoData.videoUrl.includes('.amazonaws.com/')) {
+      const s3Key = videoData.videoUrl.split('.amazonaws.com/')[1];
+      await s3.deleteObject({
+        Bucket: BUCKET_NAME,
+        Key: s3Key
+      }).promise();
+    }
+
+    // Delete from DynamoDB
+    await dynamodb.delete({
+      TableName: 'course-materials',
+      Key: { id: videoId }
+    }).promise();
+
+    return {
+      statusCode: 200,
+      headers: corsHeaders,
+      body: JSON.stringify({ success: true })
+    };
+  } catch (error) {
+    console.error('Error deleting video:', error);
+    return {
+      statusCode: 500,
+      headers: corsHeaders,
+      body: JSON.stringify({ success: false, message: 'Failed to delete video' })
     };
   }
 }

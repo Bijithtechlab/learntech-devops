@@ -130,7 +130,7 @@ export default function CourseManagementPage() {
 
   const fetchCourseMaterials = async () => {
     try {
-      const response = await fetch(`/api/admin/course-materials?courseId=${selectedCourse}`)
+      const response = await fetch(`https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/admin-materials?courseId=${selectedCourse}`)
       const data = await response.json()
       if (data.success) {
         setSections(data.sections || [])
@@ -146,7 +146,7 @@ export default function CourseManagementPage() {
     if (!confirm('Are you sure you want to delete this material?')) return
 
     try {
-      const url = `/api/admin/materials?id=${materialId}${s3Key ? `&s3Key=${s3Key}` : ''}`
+      const url = `https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/admin-materials?id=${materialId}${s3Key ? `&s3Key=${s3Key}` : ''}`
       const response = await fetch(url, { method: 'DELETE' })
       const data = await response.json()
       
@@ -165,7 +165,7 @@ export default function CourseManagementPage() {
     if (!confirm('Are you sure you want to delete this section and all its content?')) return
 
     try {
-      const response = await fetch(`/api/admin/sections?id=${sectionId}`, { method: 'DELETE' })
+      const response = await fetch(`https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/admin-sections?id=${sectionId}`, { method: 'DELETE' })
       const data = await response.json()
       
       if (data.success) {
@@ -298,13 +298,15 @@ export default function CourseManagementPage() {
 
     try {
       // Submit OneDrive URL
-      const response = await fetch('/api/admin/course-materials?action=onedrive', {
+      const response = await fetch('https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/admin-videos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           courseId: selectedCourse,
           subSectionId,
-          onedriveUrl
+          videoType: 'onedrive',
+          videoUrl: onedriveUrl,
+          originalUrl: onedriveUrl
         })
       })
 
@@ -348,27 +350,37 @@ export default function CourseManagementPage() {
     setUploadingVideos(prev => new Set([...prev, subSectionId]))
 
     try {
-      // Submit YouTube URL
-      const response = await fetch('/api/admin/course-materials?action=youtube', {
+      // Extract YouTube video ID
+      let videoId = ''
+      if (youtubeUrl.includes('youtu.be/')) {
+        videoId = youtubeUrl.split('youtu.be/')[1].split('?')[0]
+      } else if (youtubeUrl.includes('youtube.com/watch?v=')) {
+        const urlParams = new URLSearchParams(youtubeUrl.split('?')[1])
+        videoId = urlParams.get('v') || ''
+      } else if (youtubeUrl.includes('youtube.com/shorts/')) {
+        videoId = youtubeUrl.split('shorts/')[1].split('?')[0]
+      }
+
+      const response = await fetch('https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/admin-videos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           courseId: selectedCourse,
           subSectionId,
-          youtubeUrl
+          videoType: 'youtube',
+          videoUrl: `https://www.youtube.com/embed/${videoId}`,
+          youtubeId: videoId,
+          originalUrl: youtubeUrl
         })
       })
 
       const data = await response.json()
-      console.log('YouTube API response:', data)
       
       if (data.success) {
         await fetchCourseMaterials()
-        // Clear the input
         const input = document.querySelector(`#youtube-${subSectionId} input`) as HTMLInputElement
         if (input) input.value = ''
       } else {
-        console.error('YouTube API error:', data)
         alert(`Failed to add YouTube video: ${data.message || 'Unknown error'}`)
       }
     } catch (error) {
@@ -387,7 +399,7 @@ export default function CourseManagementPage() {
     if (!confirm('Are you sure you want to delete this video?')) return
 
     try {
-      const response = await fetch(`/api/admin/course-materials?courseId=${selectedCourse}&subSectionId=${subSectionId}`, {
+      const response = await fetch(`https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/admin-videos?courseId=${selectedCourse}&subSectionId=${subSectionId}`, {
         method: 'DELETE'
       })
       
@@ -407,7 +419,7 @@ export default function CourseManagementPage() {
     if (!confirm('Are you sure you want to delete this sub-section and all its materials?')) return
 
     try {
-      const response = await fetch(`/api/admin/subsections?id=${subSectionId}`, { method: 'DELETE' })
+      const response = await fetch(`https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/admin-subsections?id=${subSectionId}`, { method: 'DELETE' })
       const data = await response.json()
       
       if (data.success) {
@@ -1000,7 +1012,7 @@ function AddSectionModal({ courseId, onClose, onSuccess }: {
     setSaving(true)
 
     try {
-      const response = await fetch('/api/admin/sections', {
+      const response = await fetch('https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/admin-sections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1102,7 +1114,7 @@ function AddSubSectionModal({ courseId, sectionId, onClose, onSuccess }: {
     setSaving(true)
 
     try {
-      const response = await fetch('/api/admin/subsections', {
+      const response = await fetch('https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/admin-subsections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1204,7 +1216,7 @@ function EditSectionModal({ section, onClose, onSuccess }: {
     setSaving(true)
 
     try {
-      const response = await fetch('/api/admin/sections', {
+      const response = await fetch('https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/admin-sections', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1307,7 +1319,7 @@ function EditSubSectionModal({ subSection, courseId, onClose, onSuccess }: {
     setSaving(true)
 
     try {
-      const response = await fetch('/api/admin/subsections', {
+      const response = await fetch('https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/admin-subsections', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1430,7 +1442,7 @@ function AddMaterialModal({ courseId, subSectionId, onClose, onSuccess }: {
         isLocked
       }))
 
-      const response = await fetch('/api/admin/materials', {
+      const response = await fetch('https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/admin-materials', {
         method: 'POST',
         body: formData
       })

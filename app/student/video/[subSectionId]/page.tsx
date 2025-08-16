@@ -34,7 +34,7 @@ function VideoPageContent({ params, searchParams }: VideoPageProps) {
         return
       }
       
-      const response = await fetch(`/api/student/materials?courseId=${searchParams.courseId}`)
+      const response = await fetch(`https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/student-materials?courseId=${searchParams.courseId}`)
       const data = await response.json()
       
       if (data.success) {

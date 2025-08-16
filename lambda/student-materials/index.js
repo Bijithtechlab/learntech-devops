@@ -6,6 +6,14 @@ const dynamodb = new AWS.DynamoDB.DocumentClient();
 const s3 = new AWS.S3();
 const BUCKET_NAME = 'learntechlab-course-materials';
 
+// Helper function for CORS headers
+const corsHeaders = {
+  'Content-Type': 'application/json',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
+  'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS'
+};
+
 exports.handler = async (event) => {
   try {
     const courseId = event.queryStringParameters?.courseId;
@@ -13,7 +21,7 @@ exports.handler = async (event) => {
     if (!courseId) {
       return {
         statusCode: 400,
-        headers: { 'Content-Type': 'application/json' },
+        headers: corsHeaders,
         body: JSON.stringify({ success: false, message: 'Course ID required' })
       };
     }
@@ -27,10 +35,11 @@ exports.handler = async (event) => {
 
     const result = await dynamodb.scan(params).promise();
     
-    // Group by sections, subsections, and materials
+    // Group by sections, subsections, materials, and videos
     const sections = {};
     const subSections = {};
     const materials = [];
+    const videos = [];
     const quizzes = [];
     
     for (const item of result.Items || []) {
@@ -74,6 +83,8 @@ exports.handler = async (event) => {
           ...item,
           pdfUrl: signedUrl
         });
+      } else if (item.type === 'video' && item.subSectionId) {
+        videos.push(item);
       } else if (item.type === 'quiz') {
         quizzes.push({
           id: item.id,
@@ -94,6 +105,17 @@ exports.handler = async (event) => {
         const targetSubSection = sectionSubSections.find(ss => ss.id === material.subSectionId);
         if (targetSubSection) {
           targetSubSection.materials.push(material);
+        }
+      });
+    });
+    
+    // Attach videos to subsections
+    videos.forEach(video => {
+      Object.keys(subSections).forEach(sectionId => {
+        const sectionSubSections = subSections[sectionId];
+        const targetSubSection = sectionSubSections.find(ss => ss.id === video.subSectionId);
+        if (targetSubSection) {
+          targetSubSection.video = video;
         }
       });
     });
@@ -122,7 +144,7 @@ exports.handler = async (event) => {
 
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: corsHeaders,
       body: JSON.stringify({ success: true, sections: sectionsArray })
     };
     
@@ -130,7 +152,7 @@ exports.handler = async (event) => {
     console.error('Error fetching student materials:', error);
     return {
       statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: corsHeaders,
       body: JSON.stringify({ 
         success: false, 
         message: 'Failed to fetch materials',

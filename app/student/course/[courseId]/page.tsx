@@ -178,7 +178,7 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
 
   const fetchCourseMaterials = async () => {
     try {
-      const response = await fetch(`/api/student/materials?courseId=${params.courseId}`)
+      const response = await fetch(`https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/student-materials?courseId=${params.courseId}`)
       const data = await response.json()
       
       if (data.success) {

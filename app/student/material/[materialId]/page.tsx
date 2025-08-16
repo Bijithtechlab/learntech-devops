@@ -45,7 +45,7 @@ function MaterialViewerPageContent({ params }: MaterialViewerPageProps) {
     try {
       // Try to find material in dynamic data first
       for (const cId of user.enrolledCourses) {
-        const response = await fetch(`/api/student/materials?courseId=${cId}`)
+        const response = await fetch(`https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/student-materials?courseId=${cId}`)
         const data = await response.json()
         
         if (data.success) {
