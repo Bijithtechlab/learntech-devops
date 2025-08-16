@@ -47,10 +47,14 @@ export async function GET(request: NextRequest) {
             if (video) {
               subSection.video = {
                 id: video.id,
-                videoUrl: `/api/student/video-proxy?courseId=${courseId}&subSectionId=${subSection.id}`,
+                videoUrl: (video.videoType === 'youtube' || video.youtubeId || video.videoType === 'onedrive') ? 
+                  video.videoUrl : 
+                  `/api/student/video-proxy?courseId=${courseId}&subSectionId=${subSection.id}`,
                 videoDuration: video.videoDuration,
                 videoSize: video.videoSize,
-                videoStatus: video.videoStatus
+                videoStatus: video.videoStatus,
+                youtubeId: video.youtubeId,
+                videoType: video.videoType
               }
             }
           })

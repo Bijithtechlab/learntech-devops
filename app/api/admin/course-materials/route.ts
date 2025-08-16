@@ -263,6 +263,144 @@ export async function POST(request: NextRequest) {
     }
     
 
+    if (action === 'onedrive') {
+      const { courseId, subSectionId, onedriveUrl } = await request.json()
+      
+      if (!courseId || !subSectionId || !onedriveUrl) {
+        return NextResponse.json({ 
+          success: false, 
+          message: 'Missing required fields' 
+        }, { status: 400 })
+      }
+      
+      // Store original OneDrive URL - conversion will happen in frontend
+      const embedUrl = onedriveUrl
+      
+      console.log('Original OneDrive URL:', onedriveUrl)
+      console.log('Converted embed URL:', embedUrl)
+      
+      // Store OneDrive video data
+      const videoKey = `${courseId}-${subSectionId}`
+      videoStorage[videoKey] = {
+        id: `video-${subSectionId}`,
+        subSectionId,
+        videoUrl: embedUrl,
+        originalUrl: onedriveUrl,
+        videoDuration: 0,
+        videoSize: 0,
+        uploadedAt: new Date().toISOString(),
+        videoStatus: 'ready',
+        type: 'onedrive'
+      }
+      
+      // Also store in DynamoDB
+      const videoMetadata = {
+        id: `video-${subSectionId}`,
+        courseId,
+        subSectionId,
+        type: 'video',
+        videoUrl: embedUrl,
+        originalUrl: onedriveUrl,
+        videoDuration: 0,
+        videoSize: 0,
+        uploadedAt: new Date().toISOString(),
+        videoStatus: 'ready',
+        videoType: 'onedrive'
+      }
+      
+      const command = new PutCommand({
+        TableName: 'course-materials',
+        Item: videoMetadata
+      })
+      
+      await docClient.send(command)
+      
+      return NextResponse.json({
+        success: true,
+        message: 'OneDrive video added successfully'
+      })
+    }
+    
+    if (action === 'youtube') {
+      const { courseId, subSectionId, youtubeUrl } = await request.json()
+      
+      if (!courseId || !subSectionId || !youtubeUrl) {
+        return NextResponse.json({ 
+          success: false, 
+          message: 'Missing required fields' 
+        }, { status: 400 })
+      }
+      
+      // Extract YouTube video ID with improved regex
+      let videoId = ''
+      
+      // Handle different YouTube URL formats
+      if (youtubeUrl.includes('youtu.be/')) {
+        // Format: https://youtu.be/MKKrFzUVcgQ
+        videoId = youtubeUrl.split('youtu.be/')[1].split('?')[0]
+      } else if (youtubeUrl.includes('youtube.com/watch?v=')) {
+        // Format: https://www.youtube.com/watch?v=MKKrFzUVcgQ
+        const urlParams = new URLSearchParams(youtubeUrl.split('?')[1])
+        videoId = urlParams.get('v') || ''
+      } else if (youtubeUrl.includes('youtube.com/embed/')) {
+        // Format: https://www.youtube.com/embed/MKKrFzUVcgQ
+        videoId = youtubeUrl.split('embed/')[1].split('?')[0]
+      } else if (youtubeUrl.includes('youtube.com/shorts/')) {
+        // Format: https://www.youtube.com/shorts/0F5F6YKMnSk
+        videoId = youtubeUrl.split('shorts/')[1].split('?')[0]
+      }
+      
+      if (!videoId || videoId.length !== 11) {
+        return NextResponse.json({ 
+          success: false, 
+          message: `Invalid YouTube URL. Could not extract video ID from: ${youtubeUrl}` 
+        }, { status: 400 })
+      }
+      
+      // Store YouTube video data
+      const videoKey = `${courseId}-${subSectionId}`
+      videoStorage[videoKey] = {
+        id: `video-${subSectionId}`,
+        subSectionId,
+        videoUrl: `https://www.youtube.com/embed/${videoId}`,
+        youtubeId: videoId,
+        originalUrl: youtubeUrl,
+        videoDuration: 0, // YouTube duration would need API call to get
+        videoSize: 0,
+        uploadedAt: new Date().toISOString(),
+        videoStatus: 'ready',
+        type: 'youtube'
+      }
+      
+      // Also store in DynamoDB
+      const videoMetadata = {
+        id: `video-${subSectionId}`,
+        courseId,
+        subSectionId,
+        type: 'video',
+        videoUrl: `https://www.youtube.com/embed/${videoId}`,
+        youtubeId: videoId,
+        originalUrl: youtubeUrl,
+        videoDuration: 0,
+        videoSize: 0,
+        uploadedAt: new Date().toISOString(),
+        videoStatus: 'ready',
+        videoType: 'youtube'
+      }
+      
+      const command = new PutCommand({
+        TableName: 'course-materials',
+        Item: videoMetadata
+      })
+      
+      await docClient.send(command)
+      
+      return NextResponse.json({
+        success: true,
+        message: 'YouTube video added successfully'
+      })
+    }
+    
     if (action === 'complete') {
       const { courseId, subSectionId, videoUrl } = await request.json()
       

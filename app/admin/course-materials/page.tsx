@@ -72,7 +72,37 @@ export default function CourseManagementPage() {
   const [showAddQuiz, setShowAddQuiz] = useState<string | null>(null)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
   const [uploadingVideos, setUploadingVideos] = useState<Set<string>>(new Set())
-  const [previewVideo, setPreviewVideo] = useState<{ url: string; title: string } | null>(null)
+  const [previewVideo, setPreviewVideo] = useState<{ url: string; title: string; isYoutube?: boolean } | null>(null)
+
+  // Handle radio button changes for video type selection
+  useEffect(() => {
+    const handleRadioChange = (e: Event) => {
+      const target = e.target as HTMLInputElement
+      if (target.type === 'radio' && target.name.startsWith('videoType-')) {
+        const subSectionId = target.name.replace('videoType-', '')
+        const uploadDiv = document.getElementById(`upload-${subSectionId}`)
+        const youtubeDiv = document.getElementById(`youtube-${subSectionId}`)
+        const onedriveDiv = document.getElementById(`onedrive-${subSectionId}`)
+        
+        // Hide all options first
+        uploadDiv?.classList.add('hidden')
+        youtubeDiv?.classList.add('hidden')
+        onedriveDiv?.classList.add('hidden')
+        
+        // Show selected option
+        if (target.value === 'upload') {
+          uploadDiv?.classList.remove('hidden')
+        } else if (target.value === 'youtube') {
+          youtubeDiv?.classList.remove('hidden')
+        } else if (target.value === 'onedrive') {
+          onedriveDiv?.classList.remove('hidden')
+        }
+      }
+    }
+    
+    document.addEventListener('change', handleRadioChange)
+    return () => document.removeEventListener('change', handleRadioChange)
+  }, [])
 
 
   useEffect(() => {
@@ -248,6 +278,108 @@ export default function CourseManagementPage() {
       handleVideoUpload(subSectionId, file)
     } else {
       console.log('No file selected')
+    }
+  }
+
+  const handleOneDriveSubmit = async (subSectionId: string, onedriveUrl: string) => {
+    if (!onedriveUrl.trim()) {
+      alert('Please enter a OneDrive URL')
+      return
+    }
+
+    // Validate OneDrive URL
+    const onedriveRegex = /^https:\/\/(1drv\.ms|onedrive\.live\.com)\/.+/
+    if (!onedriveRegex.test(onedriveUrl)) {
+      alert('Please enter a valid OneDrive URL (must start with https://1drv.ms or https://onedrive.live.com)')
+      return
+    }
+
+    setUploadingVideos(prev => new Set([...prev, subSectionId]))
+
+    try {
+      // Submit OneDrive URL
+      const response = await fetch('/api/admin/course-materials?action=onedrive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          courseId: selectedCourse,
+          subSectionId,
+          onedriveUrl
+        })
+      })
+
+      const data = await response.json()
+      console.log('OneDrive API response:', data)
+      
+      if (data.success) {
+        await fetchCourseMaterials()
+        // Clear the input
+        const input = document.querySelector(`#onedrive-${subSectionId} input`) as HTMLInputElement
+        if (input) input.value = ''
+      } else {
+        console.error('OneDrive API error:', data)
+        alert(`Failed to add OneDrive video: ${data.message || 'Unknown error'}`)
+      }
+    } catch (error) {
+      console.error('Error adding OneDrive video:', error)
+      alert('Error adding OneDrive video')
+    } finally {
+      setUploadingVideos(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(subSectionId)
+        return newSet
+      })
+    }
+  }
+
+  const handleYouTubeSubmit = async (subSectionId: string, youtubeUrl: string) => {
+    if (!youtubeUrl.trim()) {
+      alert('Please enter a YouTube URL')
+      return
+    }
+
+    // Validate YouTube URL
+    const youtubeRegex = /^(https?\:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/
+    if (!youtubeRegex.test(youtubeUrl)) {
+      alert('Please enter a valid YouTube URL')
+      return
+    }
+
+    setUploadingVideos(prev => new Set([...prev, subSectionId]))
+
+    try {
+      // Submit YouTube URL
+      const response = await fetch('/api/admin/course-materials?action=youtube', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          courseId: selectedCourse,
+          subSectionId,
+          youtubeUrl
+        })
+      })
+
+      const data = await response.json()
+      console.log('YouTube API response:', data)
+      
+      if (data.success) {
+        await fetchCourseMaterials()
+        // Clear the input
+        const input = document.querySelector(`#youtube-${subSectionId} input`) as HTMLInputElement
+        if (input) input.value = ''
+      } else {
+        console.error('YouTube API error:', data)
+        alert(`Failed to add YouTube video: ${data.message || 'Unknown error'}`)
+      }
+    } catch (error) {
+      console.error('Error adding YouTube video:', error)
+      alert('Error adding YouTube video')
+    } finally {
+      setUploadingVideos(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(subSectionId)
+        return newSet
+      })
     }
   }
 
@@ -437,29 +569,120 @@ export default function CourseManagementPage() {
                         </h5>
                         
                         {!subSection.video || subSection.video.videoStatus !== 'ready' ? (
-                          <div className="flex items-center gap-3">
-                            <input
-                              type="file"
-                              accept="video/*"
-                              onChange={(e) => handleFileSelect(subSection.id, e)}
-                              className="hidden"
-                              id={`video-${subSection.id}`}
-                              disabled={uploadingVideos.has(subSection.id)}
-                            />
-                            <label
-                              htmlFor={`video-${subSection.id}`}
-                              className={`flex items-center gap-2 px-3 py-1 rounded text-sm cursor-pointer transition-colors ${
-                                uploadingVideos.has(subSection.id)
-                                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                  : 'bg-blue-600 text-white hover:bg-blue-700'
-                              }`}
-                            >
-                              <Upload className="h-3 w-3" />
-                              {uploadingVideos.has(subSection.id) ? 'Uploading...' : 'Upload Video'}
-                            </label>
-                            {!subSection.video && (
-                              <span className="text-xs text-gray-500">No video uploaded</span>
-                            )}
+                          <div className="space-y-3">
+                            {/* Video Type Selection */}
+                            <div className="flex gap-4">
+                              <label className="flex items-center">
+                                <input
+                                  type="radio"
+                                  name={`videoType-${subSection.id}`}
+                                  value="upload"
+                                  defaultChecked
+                                  className="mr-2"
+                                />
+                                Upload File
+                              </label>
+                              <label className="flex items-center">
+                                <input
+                                  type="radio"
+                                  name={`videoType-${subSection.id}`}
+                                  value="youtube"
+                                  className="mr-2"
+                                />
+                                YouTube URL
+                              </label>
+                              <label className="flex items-center">
+                                <input
+                                  type="radio"
+                                  name={`videoType-${subSection.id}`}
+                                  value="onedrive"
+                                  className="mr-2"
+                                />
+                                OneDrive URL
+                              </label>
+                            </div>
+                            
+                            {/* File Upload Option */}
+                            <div id={`upload-${subSection.id}`} className="video-option">
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="file"
+                                  accept="video/*"
+                                  onChange={(e) => handleFileSelect(subSection.id, e)}
+                                  className="hidden"
+                                  id={`video-${subSection.id}`}
+                                  disabled={uploadingVideos.has(subSection.id)}
+                                />
+                                <label
+                                  htmlFor={`video-${subSection.id}`}
+                                  className={`flex items-center gap-2 px-3 py-1 rounded text-sm cursor-pointer transition-colors ${
+                                    uploadingVideos.has(subSection.id)
+                                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                                  }`}
+                                >
+                                  <Upload className="h-3 w-3" />
+                                  {uploadingVideos.has(subSection.id) ? 'Uploading...' : 'Upload Video'}
+                                </label>
+                                {!subSection.video && (
+                                  <span className="text-xs text-gray-500">Max 500MB</span>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* YouTube URL Option */}
+                            <div id={`youtube-${subSection.id}`} className="video-option hidden">
+                              <div className="flex gap-2">
+                                <input
+                                  type="url"
+                                  placeholder="https://youtu.be/MKKrFzUVcgQ or https://www.youtube.com/watch?v=..."
+                                  className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      handleYouTubeSubmit(subSection.id, e.currentTarget.value)
+                                    }
+                                  }}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    const input = e.currentTarget.previousElementSibling as HTMLInputElement
+                                    handleYouTubeSubmit(subSection.id, input.value)
+                                  }}
+                                  className="bg-red-600 text-white px-3 py-2 rounded text-sm hover:bg-red-700 flex items-center gap-1"
+                                >
+                                  <Video className="h-3 w-3" />
+                                  Add
+                                </button>
+                              </div>
+                            </div>
+                            
+                            {/* OneDrive URL Option */}
+                            <div id={`onedrive-${subSection.id}`} className="video-option hidden">
+                              <div className="flex gap-2">
+                                <input
+                                  type="url"
+                                  placeholder="https://1drv.ms/v/c/beffb4d1067d3ffe/EYZi2c9KQ-lMp2j9mxbEQmIB..."
+                                  className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      handleOneDriveSubmit(subSection.id, e.currentTarget.value)
+                                    }
+                                  }}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    const input = e.currentTarget.previousElementSibling as HTMLInputElement
+                                    handleOneDriveSubmit(subSection.id, input.value)
+                                  }}
+                                  className="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700 flex items-center gap-1"
+                                >
+                                  <Video className="h-3 w-3" />
+                                  Add
+                                </button>
+                              </div>
+                            </div>
                           </div>
                         ) : (
                           <div className="flex items-center justify-between">
@@ -477,25 +700,37 @@ export default function CourseManagementPage() {
                               <button 
                                 onClick={async () => {
                                   console.log('Preview clicked for:', subSection.id)
-                                  try {
-                                    // Get signed URL for preview
-                                    const response = await fetch(`/api/admin/course-materials?action=preview-url&courseId=${selectedCourse}&subSectionId=${subSection.id}`)
-                                    const data = await response.json()
-                                    console.log('Preview response:', data)
-                                    
-                                    if (data.success && data.signedUrl) {
-                                      console.log('Setting preview video with URL:', data.signedUrl)
-                                      setPreviewVideo({ 
-                                        url: data.signedUrl, 
-                                        title: subSection.title 
-                                      })
-                                    } else {
-                                      console.error('Preview failed:', data)
-                                      alert(`Failed to generate preview URL: ${data.message || 'Unknown error'}`)
+                                  
+                                  // Check if it's a YouTube video
+                                  if (subSection.video?.youtubeId || subSection.video?.videoType === 'youtube') {
+                                    // For YouTube videos, use the embed URL directly
+                                    setPreviewVideo({ 
+                                      url: subSection.video.videoUrl, 
+                                      title: subSection.title,
+                                      isYoutube: true
+                                    })
+                                  } else {
+                                    // For uploaded videos, get signed URL
+                                    try {
+                                      const response = await fetch(`/api/admin/course-materials?action=preview-url&courseId=${selectedCourse}&subSectionId=${subSection.id}`)
+                                      const data = await response.json()
+                                      console.log('Preview response:', data)
+                                      
+                                      if (data.success && data.signedUrl) {
+                                        console.log('Setting preview video with URL:', data.signedUrl)
+                                        setPreviewVideo({ 
+                                          url: data.signedUrl, 
+                                          title: subSection.title,
+                                          isYoutube: false
+                                        })
+                                      } else {
+                                        console.error('Preview failed:', data)
+                                        alert(`Failed to generate preview URL: ${data.message || 'Unknown error'}`)
+                                      }
+                                    } catch (error) {
+                                      console.error('Preview error:', error)
+                                      alert('Error generating preview URL')
                                     }
-                                  } catch (error) {
-                                    console.error('Preview error:', error)
-                                    alert('Error generating preview URL')
                                   }
                                 }}
                                 className="flex items-center gap-1 px-2 py-1 text-blue-600 hover:bg-blue-100 rounded text-xs"
@@ -705,27 +940,40 @@ export default function CourseManagementPage() {
                 </button>
               </div>
               <div className="p-4">
-                <video
-                  src={previewVideo.url}
-                  controls
-                  className="w-full h-auto max-h-[70vh]"
-                  preload="metadata"
-                  crossOrigin="anonymous"
-                  onError={(e) => {
-                    console.error('Video load error:', e)
-                    console.error('Video error details:', e.target.error)
-                    alert(`Video error: ${e.target.error?.message || 'Unknown error'}`)
-                  }}
-                  onLoadStart={() => console.log('Video loading started')}
-                  onCanPlay={() => console.log('Video can play')}
-                  onLoadedMetadata={() => console.log('Video metadata loaded')}
-                  onLoadedData={() => console.log('Video data loaded')}
-                >
-                  Your browser does not support the video tag.
-                </video>
-                <div className="mt-2 text-xs text-gray-500">
-                  If video doesn't play, try opening the URL directly in a new tab to test access.
-                </div>
+                {previewVideo.isYoutube ? (
+                  <iframe
+                    src={previewVideo.url}
+                    className="w-full aspect-video max-h-[70vh]"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title={previewVideo.title}
+                  ></iframe>
+                ) : (
+                  <video
+                    src={previewVideo.url}
+                    controls
+                    className="w-full h-auto max-h-[70vh]"
+                    preload="metadata"
+                    crossOrigin="anonymous"
+                    onError={(e) => {
+                      console.error('Video load error:', e)
+                      console.error('Video error details:', e.target.error)
+                      alert(`Video error: ${e.target.error?.message || 'Unknown error'}`)
+                    }}
+                    onLoadStart={() => console.log('Video loading started')}
+                    onCanPlay={() => console.log('Video can play')}
+                    onLoadedMetadata={() => console.log('Video metadata loaded')}
+                    onLoadedData={() => console.log('Video data loaded')}
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                )}
+                {!previewVideo.isYoutube && (
+                  <div className="mt-2 text-xs text-gray-500">
+                    If video doesn't play, try opening the URL directly in a new tab to test access.
+                  </div>
+                )}
               </div>
             </div>
           </div>
