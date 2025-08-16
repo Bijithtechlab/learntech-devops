@@ -394,58 +394,66 @@ function CourseContentPageContent({ params }: CourseContentPageProps) {
                   <div className="space-y-3">
                     {section.subSections?.map((subSection, subIndex) => (
                       <div key={subSection.id}>
-                        {/* Subsection Materials in Single Row */}
-                        {subSection.materials?.map((material) => (
-                          <div key={material.id} className="flex items-center justify-between py-3 pl-6 hover:bg-gray-50 rounded border-b border-gray-100 last:border-b-0">
-                            <div className="flex items-center gap-4 flex-1">
-                              <FileText className="h-4 w-4 text-blue-500" />
-                              <span className="font-medium text-gray-900 min-w-[200px]">{subIndex + 1}. {subSection.title}</span>
-                              <span className="text-gray-700">{material.title}</span>
-                              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">PDF</span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <span className={`text-xs px-2 py-1 rounded ${
-                                completedMaterials.has(material.id) 
-                                  ? 'bg-green-100 text-green-800' 
-                                  : 'bg-gray-100 text-gray-600'
-                              }`}>
-                                {completedMaterials.has(material.id) ? 'Completed' : 'Not Started'}
-                              </span>
-                              {!material.isLocked ? (
-                                <Link
-                                  href={`/student/material/${material.id}`}
-                                  className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
-                                >
-                                  View
-                                </Link>
-                              ) : (
-                                <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded">
-                                  Locked
+                        {/* Subsection with Video and PDF Buttons */}
+                        <div className="flex items-center justify-between py-3 pl-6 hover:bg-gray-50 rounded border-b border-gray-100">
+                          <div className="flex items-center gap-4 flex-1">
+                            <span className="font-medium text-gray-900 min-w-[200px]">{subIndex + 1}. {subSection.title}</span>
+                            <div className="flex items-center gap-2">
+                              {subSection.video && (
+                                <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded flex items-center gap-1">
+                                  <Video className="h-3 w-3" />
+                                  Video
+                                </span>
+                              )}
+                              {subSection.materials && subSection.materials.length > 0 && (
+                                <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded flex items-center gap-1">
+                                  <FileText className="h-3 w-3" />
+                                  {subSection.materials.length} PDF{subSection.materials.length > 1 ? 's' : ''}
                                 </span>
                               )}
                             </div>
                           </div>
-                        ))}
-                        
-                        {/* Show subsection without materials */}
-                        {(!subSection.materials || subSection.materials.length === 0) && (
-                          <div className="flex items-center justify-between py-3 pl-6 hover:bg-gray-50 rounded border-b border-gray-100">
-                            <div className="flex items-center gap-4 flex-1">
-                              <FileText className="h-4 w-4 text-blue-500" />
-                              <span className="font-medium text-gray-900 min-w-[200px]">{subIndex + 1}. {subSection.title}</span>
-                              <span className="text-gray-700">No materials</span>
-                              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">PDF</span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600">
-                                Not Available
-                              </span>
-                              <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded">
-                                View
-                              </span>
-                            </div>
+                          <div className="flex items-center gap-3">
+                            {subSection.video && (
+                              <Link
+                                href={`/student/video/${subSection.id}?courseId=${params.courseId}`}
+                                className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 flex items-center gap-1"
+                              >
+                                <Video className="h-3 w-3" />
+                                View Video
+                              </Link>
+                            )}
+                            {subSection.materials && subSection.materials.length > 0 && (
+                              subSection.materials.length === 1 ? (
+                                <Link
+                                  href={`/student/material/${subSection.materials[0].id}`}
+                                  className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 flex items-center gap-1"
+                                >
+                                  <FileText className="h-3 w-3" />
+                                  View PDF
+                                </Link>
+                              ) : (
+                                <div className="relative group">
+                                  <button className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 flex items-center gap-1">
+                                    <FileText className="h-3 w-3" />
+                                    View PDFs ({subSection.materials.length})
+                                  </button>
+                                  <div className="absolute right-0 top-full mt-1 bg-white border rounded shadow-lg hidden group-hover:block z-10 min-w-48">
+                                    {subSection.materials.map((material: any) => (
+                                      <Link
+                                        key={material.id}
+                                        href={`/student/material/${material.id}`}
+                                        className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                      >
+                                        {material.title}
+                                      </Link>
+                                    ))}
+                                  </div>
+                                </div>
+                              )
+                            )}
                           </div>
-                        )}
+                        </div>
                       </div>
                     ))}
                     

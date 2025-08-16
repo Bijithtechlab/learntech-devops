@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { Plus, Upload, Edit, Trash2, FileText, HelpCircle, X, ChevronDown } from 'lucide-react'
+import { Plus, Upload, Edit, Trash2, FileText, HelpCircle, X, ChevronDown, Video, Play, Eye } from 'lucide-react'
 import QuestionBuilder from '@/components/QuestionBuilder'
 import AdminHeader from '@/components/AdminHeader'
 
@@ -16,6 +16,17 @@ interface Material {
   pdfUrl?: string
   s3Key?: string
   subSectionId: string
+}
+
+interface VideoMaterial {
+  id?: string
+  subSectionId: string
+  title?: string
+  videoUrl?: string
+  videoDuration?: number
+  videoSize?: number
+  uploadedAt?: string
+  videoStatus: 'none' | 'uploading' | 'ready' | 'failed'
 }
 
 interface Quiz {
@@ -34,6 +45,7 @@ interface SubSection {
   description: string
   order: number
   materials: Material[]
+  video?: VideoMaterial
   sectionId: string
 }
 
@@ -59,6 +71,8 @@ export default function CourseManagementPage() {
   const [showAddMaterial, setShowAddMaterial] = useState<string | null>(null)
   const [showAddQuiz, setShowAddQuiz] = useState<string | null>(null)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
+  const [uploadingVideos, setUploadingVideos] = useState<Set<string>>(new Set())
+  const [previewVideo, setPreviewVideo] = useState<{ url: string; title: string } | null>(null)
 
 
   useEffect(() => {
@@ -143,6 +157,118 @@ export default function CourseManagementPage() {
       newExpanded.add(sectionId)
     }
     setExpandedSections(newExpanded)
+  }
+
+  const handleVideoUpload = async (subSectionId: string, file: File) => {
+    console.log('handleVideoUpload called with:', { subSectionId, fileName: file.name })
+    setUploadingVideos(prev => new Set([...prev, subSectionId]))
+    
+    try {
+      // Get pre-signed upload URL
+      const uploadResponse = await fetch('/api/admin/course-materials?action=upload-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          courseId: selectedCourse,
+          subSectionId,
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type
+        })
+      })
+      
+      const uploadData = await uploadResponse.json()
+      if (!uploadData.success) {
+        throw new Error(uploadData.message)
+      }
+
+      // Upload file through our API to avoid CORS issues
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('courseId', selectedCourse)
+      formData.append('subSectionId', subSectionId)
+      formData.append('s3Key', uploadData.s3Key)
+      
+      const s3Response = await fetch('/api/admin/course-materials?action=upload-file', {
+        method: 'POST',
+        body: formData
+      })
+      
+      const uploadResult = await s3Response.json()
+      if (!uploadResult.success) {
+        throw new Error(uploadResult.message || 'Failed to upload file')
+      }
+
+      // Confirm upload completion
+      await fetch('/api/admin/course-materials?action=complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          courseId: selectedCourse,
+          subSectionId,
+          videoUrl: uploadResult.videoUrl
+        })
+      })
+
+      // Refresh materials
+      await fetchCourseMaterials()
+      
+    } catch (error) {
+      console.error('Error uploading video:', error)
+      alert('Failed to upload video. Please try again.')
+    } finally {
+      setUploadingVideos(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(subSectionId)
+        return newSet
+      })
+    }
+  }
+
+  const handleFileSelect = (subSectionId: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('File select triggered for subsection:', subSectionId)
+    const file = event.target.files?.[0]
+    console.log('Selected file:', file)
+    
+    if (file) {
+      console.log('File details:', { name: file.name, size: file.size, type: file.type })
+      
+      // Validate file
+      if (file.size > 500 * 1024 * 1024) { // 500MB limit
+        alert('File size must be less than 500MB')
+        return
+      }
+      
+      if (!file.type.startsWith('video/')) {
+        alert('Please select a video file')
+        return
+      }
+      
+      console.log('Starting video upload...')
+      handleVideoUpload(subSectionId, file)
+    } else {
+      console.log('No file selected')
+    }
+  }
+
+  const handleDeleteVideo = async (subSectionId: string) => {
+    if (!confirm('Are you sure you want to delete this video?')) return
+
+    try {
+      const response = await fetch(`/api/admin/course-materials?courseId=${selectedCourse}&subSectionId=${subSectionId}`, {
+        method: 'DELETE'
+      })
+      
+      const data = await response.json()
+      if (data.success) {
+        fetchCourseMaterials()
+      } else {
+        alert('Failed to delete video')
+      }
+    } catch (error) {
+      console.error('Error deleting video:', error)
+      alert('Error deleting video')
+    }
   }
 
   const handleDeleteSubSection = async (subSectionId: string) => {
@@ -271,6 +397,12 @@ export default function CourseManagementPage() {
                           <h4 className="font-semibold text-gray-900 flex items-center gap-2">
                             <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
                             {subSection.title}
+                            {subSection.video?.videoStatus === 'ready' && (
+                              <Video className="h-4 w-4 text-green-500" title="Video Available" />
+                            )}
+                            {uploadingVideos.has(subSection.id) && (
+                              <span className="text-blue-600 text-xs">Uploading...</span>
+                            )}
                           </h4>
                           <p className="text-sm text-gray-600 ml-4">{subSection.description}</p>
                         </div>
@@ -297,9 +429,97 @@ export default function CourseManagementPage() {
                         </div>
                       </div>
                       
+                      {/* Video Upload Section */}
+                      <div className="mb-4 p-3 bg-blue-50 rounded border">
+                        <h5 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
+                          <Video className="h-4 w-4 text-blue-600" />
+                          Video Content
+                        </h5>
+                        
+                        {!subSection.video || subSection.video.videoStatus !== 'ready' ? (
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="file"
+                              accept="video/*"
+                              onChange={(e) => handleFileSelect(subSection.id, e)}
+                              className="hidden"
+                              id={`video-${subSection.id}`}
+                              disabled={uploadingVideos.has(subSection.id)}
+                            />
+                            <label
+                              htmlFor={`video-${subSection.id}`}
+                              className={`flex items-center gap-2 px-3 py-1 rounded text-sm cursor-pointer transition-colors ${
+                                uploadingVideos.has(subSection.id)
+                                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                  : 'bg-blue-600 text-white hover:bg-blue-700'
+                              }`}
+                            >
+                              <Upload className="h-3 w-3" />
+                              {uploadingVideos.has(subSection.id) ? 'Uploading...' : 'Upload Video'}
+                            </label>
+                            {!subSection.video && (
+                              <span className="text-xs text-gray-500">No video uploaded</span>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className="text-xs text-gray-600">
+                                <p>Duration: {Math.round((subSection.video.videoDuration || 0) / 60)} min</p>
+                                <p>Size: {((subSection.video.videoSize || 0) / (1024 * 1024)).toFixed(1)} MB</p>
+                              </div>
+                              <span className="text-green-600 text-xs flex items-center gap-1">
+                                <Play className="h-3 w-3" />
+                                Video Ready
+                              </span>
+                            </div>
+                            <div className="flex gap-2">
+                              <button 
+                                onClick={async () => {
+                                  console.log('Preview clicked for:', subSection.id)
+                                  try {
+                                    // Get signed URL for preview
+                                    const response = await fetch(`/api/admin/course-materials?action=preview-url&courseId=${selectedCourse}&subSectionId=${subSection.id}`)
+                                    const data = await response.json()
+                                    console.log('Preview response:', data)
+                                    
+                                    if (data.success && data.signedUrl) {
+                                      console.log('Setting preview video with URL:', data.signedUrl)
+                                      setPreviewVideo({ 
+                                        url: data.signedUrl, 
+                                        title: subSection.title 
+                                      })
+                                    } else {
+                                      console.error('Preview failed:', data)
+                                      alert(`Failed to generate preview URL: ${data.message || 'Unknown error'}`)
+                                    }
+                                  } catch (error) {
+                                    console.error('Preview error:', error)
+                                    alert('Error generating preview URL')
+                                  }
+                                }}
+                                className="flex items-center gap-1 px-2 py-1 text-blue-600 hover:bg-blue-100 rounded text-xs"
+                                title="Preview Video"
+                              >
+                                <Eye className="h-3 w-3" />
+                                Preview
+                              </button>
+                              <button
+                                onClick={() => handleDeleteVideo(subSection.id)}
+                                className="flex items-center gap-1 px-2 py-1 text-red-600 hover:bg-red-100 rounded text-xs"
+                                title="Delete Video"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
                       {/* Sub Section Materials */}
                       <div className="ml-4 space-y-2">
-                        {subSection.materials.map((material) => (
+                        {subSection.materials?.map((material) => (
                           <div key={material.id} className="flex items-center justify-between p-3 bg-white rounded border">
                             <div className="flex items-center gap-3">
                               <FileText className="h-4 w-4 text-blue-500" />
@@ -328,7 +548,7 @@ export default function CourseManagementPage() {
                           </div>
                         ))}
                         
-                        {subSection.materials.length === 0 && (
+                        {(!subSection.materials || subSection.materials.length === 0) && (
                           <div className="p-4 text-center text-gray-500 text-sm bg-white rounded border">
                             No materials in this sub-section yet
                           </div>
@@ -471,6 +691,45 @@ export default function CourseManagementPage() {
           />
         )}
 
+        {/* Video Preview Modal */}
+        {previewVideo && (
+          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
+              <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Preview: {previewVideo.title}</h3>
+                <button
+                  onClick={() => setPreviewVideo(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              <div className="p-4">
+                <video
+                  src={previewVideo.url}
+                  controls
+                  className="w-full h-auto max-h-[70vh]"
+                  preload="metadata"
+                  crossOrigin="anonymous"
+                  onError={(e) => {
+                    console.error('Video load error:', e)
+                    console.error('Video error details:', e.target.error)
+                    alert(`Video error: ${e.target.error?.message || 'Unknown error'}`)
+                  }}
+                  onLoadStart={() => console.log('Video loading started')}
+                  onCanPlay={() => console.log('Video can play')}
+                  onLoadedMetadata={() => console.log('Video metadata loaded')}
+                  onLoadedData={() => console.log('Video data loaded')}
+                >
+                  Your browser does not support the video tag.
+                </video>
+                <div className="mt-2 text-xs text-gray-500">
+                  If video doesn't play, try opening the URL directly in a new tab to test access.
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
