@@ -194,54 +194,45 @@ export default function CourseManagementPage() {
     setUploadingVideos(prev => new Set([...prev, subSectionId]))
     
     try {
-      // Get pre-signed upload URL
-      const uploadResponse = await fetch('/api/admin/course-materials?action=upload-url', {
+      // Check file size (API Gateway limit)
+      const maxSize = 10 * 1024 * 1024 // 10MB for videos
+      if (file.size > maxSize) {
+        alert(`Video file size (${(file.size / 1024 / 1024).toFixed(1)}MB) exceeds the 10MB limit. Please use YouTube or OneDrive links for larger videos.`)
+        return
+      }
+      
+      // Convert video file to base64
+      
+      // Convert file to base64
+      const reader = new FileReader()
+      const fileContent = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const result = reader.result as string
+          resolve(result.split(',')[1]) // Remove data:video/...;base64, prefix
+        }
+        reader.onerror = reject
+        reader.readAsDataURL(file)
+      })
+      
+      // Upload video using Lambda endpoint
+      const response = await fetch('https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/admin-videos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           courseId: selectedCourse,
           subSectionId,
-          fileName: file.name,
-          fileSize: file.size,
-          fileType: file.type
+          videoType: 'upload',
+          fileContent,
+          fileName: file.name
         })
       })
       
-      const uploadData = await uploadResponse.json()
-      if (!uploadData.success) {
-        throw new Error(uploadData.message)
+      const data = await response.json()
+      if (data.success) {
+        await fetchCourseMaterials()
+      } else {
+        throw new Error(data.message || 'Failed to upload video')
       }
-
-      // Upload file through our API to avoid CORS issues
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('courseId', selectedCourse)
-      formData.append('subSectionId', subSectionId)
-      formData.append('s3Key', uploadData.s3Key)
-      
-      const s3Response = await fetch('/api/admin/course-materials?action=upload-file', {
-        method: 'POST',
-        body: formData
-      })
-      
-      const uploadResult = await s3Response.json()
-      if (!uploadResult.success) {
-        throw new Error(uploadResult.message || 'Failed to upload file')
-      }
-
-      // Confirm upload completion
-      await fetch('/api/admin/course-materials?action=complete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          courseId: selectedCourse,
-          subSectionId,
-          videoUrl: uploadResult.videoUrl
-        })
-      })
-
-      // Refresh materials
-      await fetchCourseMaterials()
       
     } catch (error) {
       console.error('Error uploading video:', error)
@@ -637,7 +628,7 @@ export default function CourseManagementPage() {
                                   {uploadingVideos.has(subSection.id) ? 'Uploading...' : 'Upload Video'}
                                 </label>
                                 {!subSection.video && (
-                                  <span className="text-xs text-gray-500">Max 500MB</span>
+                                  <span className="text-xs text-gray-500">Max 10MB</span>
                                 )}
                               </div>
                             </div>
@@ -722,26 +713,15 @@ export default function CourseManagementPage() {
                                       isYoutube: true
                                     })
                                   } else {
-                                    // For uploaded videos, get signed URL
-                                    try {
-                                      const response = await fetch(`/api/admin/course-materials?action=preview-url&courseId=${selectedCourse}&subSectionId=${subSection.id}`)
-                                      const data = await response.json()
-                                      console.log('Preview response:', data)
-                                      
-                                      if (data.success && data.signedUrl) {
-                                        console.log('Setting preview video with URL:', data.signedUrl)
-                                        setPreviewVideo({ 
-                                          url: data.signedUrl, 
-                                          title: subSection.title,
-                                          isYoutube: false
-                                        })
-                                      } else {
-                                        console.error('Preview failed:', data)
-                                        alert(`Failed to generate preview URL: ${data.message || 'Unknown error'}`)
-                                      }
-                                    } catch (error) {
-                                      console.error('Preview error:', error)
-                                      alert('Error generating preview URL')
+                                    // For uploaded videos, use direct S3 URL
+                                    if (subSection.video?.videoUrl) {
+                                      setPreviewVideo({ 
+                                        url: subSection.video.videoUrl, 
+                                        title: subSection.title,
+                                        isYoutube: false
+                                      })
+                                    } else {
+                                      alert('Video URL not available')
                                     }
                                   }
                                 }}
@@ -1426,32 +1406,60 @@ function AddMaterialModal({ courseId, subSectionId, onClose, onSuccess }: {
     setSaving(true)
 
     try {
-      const formData = new FormData()
+      let fileContent = ''
+      let fileName = ''
       
       if (file) {
-        formData.append('file', file)
+        // Check file size (API Gateway has 10MB limit, base64 increases size by ~33%)
+        const maxSize = 7 * 1024 * 1024 // 7MB to account for base64 encoding
+        if (file.size > maxSize) {
+          alert(`File size (${(file.size / 1024 / 1024).toFixed(1)}MB) exceeds the 7MB limit. Please use a smaller file.`)
+          return
+        }
+        
+        // Convert file to base64
+        const reader = new FileReader()
+        fileContent = await new Promise((resolve, reject) => {
+          reader.onload = () => {
+            const result = reader.result as string
+            resolve(result.split(',')[1]) // Remove data:application/pdf;base64, prefix
+          }
+          reader.onerror = reject
+          reader.readAsDataURL(file)
+        })
+        fileName = file.name
       }
 
-      formData.append('materialData', JSON.stringify({
-        courseId,
-        subSectionId,
-        title,
-        description,
-        order,
-        estimatedTime,
-        isLocked
-      }))
-
+      const requestBody = {
+        materialData: {
+          courseId,
+          subSectionId,
+          title,
+          description,
+          order,
+          estimatedTime,
+          isLocked
+        },
+        fileContent,
+        fileName
+      }
+      
+      console.log('Sending request:', JSON.stringify(requestBody, null, 2))
+      
       const response = await fetch('https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/prod/admin-materials', {
         method: 'POST',
-        body: formData
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody)
       })
-
+      
+      console.log('Response status:', response.status)
       const data = await response.json()
+      console.log('Response data:', data)
+      
       if (data.success) {
         onSuccess()
       } else {
-        alert('Failed to create material')
+        alert(`Failed to create material: ${data.message || 'Unknown error'}`)
       }
     } catch (error) {
       console.error('Error creating material:', error)
@@ -1496,6 +1504,7 @@ function AddMaterialModal({ courseId, subSectionId, onClose, onSuccess }: {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               required
             />
+            <p className="text-xs text-gray-500 mt-1">Maximum file size: 7MB</p>
           </div>
           
           <div className="grid grid-cols-2 gap-4">

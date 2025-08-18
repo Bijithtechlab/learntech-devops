@@ -135,11 +135,6 @@ function VideoPageContent({ params, searchParams }: VideoPageProps) {
                   title={videoData.title}
                 ></iframe>
                 
-                <div className="absolute top-0 right-0 w-24 h-20 bg-black opacity-90 z-10 pointer-events-auto"></div>
-                <div className="absolute bottom-0 right-0 w-20 h-12 bg-black opacity-90 z-10 pointer-events-auto"></div>
-                <div className="absolute top-0 left-0 w-full h-16 bg-gradient-to-b from-black/70 to-transparent z-10 pointer-events-auto"></div>
-                <div className="absolute bottom-0 left-0 w-48 h-16 bg-black opacity-90 z-10 pointer-events-auto"></div>
-                
               </div>
             </>
           ) : videoData.videoType === 'onedrive' || videoData.videoUrl?.includes('onedrive.live.com') || videoData.videoUrl?.includes('1drv.ms') ? (

@@ -23,6 +23,10 @@ exports.handler = async (event) => {
     // Route to appropriate handler based on method and path
     if (method === 'GET' && path.includes('/admin-materials')) {
       return await getCourseMaterials(event);
+    } else if (method === 'POST' && path.includes('/admin-materials')) {
+      return await createMaterial(event);
+    } else if (method === 'DELETE' && path.includes('/admin-materials')) {
+      return await deleteMaterial(event);
     } else if (method === 'POST' && path.includes('/admin-sections')) {
       return await createSection(event);
     } else if (method === 'PUT' && path.includes('/admin-sections')) {
@@ -35,10 +39,6 @@ exports.handler = async (event) => {
       return await updateSubSection(event);
     } else if (method === 'DELETE' && path.includes('/admin-subsections')) {
       return await deleteSubSection(event);
-    } else if (method === 'POST' && path.includes('/admin-materials')) {
-      return await createMaterial(event);
-    } else if (method === 'DELETE' && path.includes('/admin-materials')) {
-      return await deleteMaterial(event);
     } else if (method === 'POST' && path.includes('/admin-videos')) {
       return await createVideo(event);
     } else if (method === 'DELETE' && path.includes('/admin-videos')) {
@@ -362,8 +362,37 @@ async function deleteSubSection(event) {
 // Create material with S3 upload
 async function createMaterial(event) {
   try {
-    const body = JSON.parse(event.body);
-    const { materialData, fileContent, fileName } = body;
+
+    
+    if (!event.body) {
+      throw new Error('No request body provided');
+    }
+    
+    let materialData, fileContent, fileName;
+    
+    // Check if it's multipart/form-data (FormData) or JSON
+    const contentType = event.headers['content-type'] || event.headers['Content-Type'] || '';
+    
+    if (contentType.includes('multipart/form-data')) {
+      // Handle FormData - for now, return error asking for JSON format
+      return {
+        statusCode: 400,
+        headers: corsHeaders,
+        body: JSON.stringify({ 
+          success: false, 
+          message: 'Please send data as JSON with base64 encoded file content' 
+        })
+      };
+    } else {
+      // Handle JSON
+      const body = JSON.parse(event.body);
+
+      ({ materialData, fileContent, fileName } = body);
+    }
+    
+    if (!materialData) {
+      throw new Error('materialData is required');
+    }
     
     let s3Key = '';
     let pdfUrl = '';
@@ -462,22 +491,42 @@ async function deleteMaterial(event) {
   }
 }
 
-// Create video (YouTube/OneDrive)
+// Create video (YouTube/OneDrive/Upload)
 async function createVideo(event) {
   try {
     const body = JSON.parse(event.body);
-    const { courseId, subSectionId, videoType, videoUrl, youtubeId, originalUrl } = body;
+    const { courseId, subSectionId, videoType, videoUrl, youtubeId, originalUrl, fileContent, fileName } = body;
+
+    let finalVideoUrl = videoUrl;
+    let s3Key = '';
+    let videoSize = 0;
+    
+    // Handle file upload
+    if (videoType === 'upload' && fileContent && fileName) {
+      s3Key = `${courseId}/videos/${subSectionId}/${Date.now()}-${fileName}`;
+      
+      // Upload video to S3
+      await s3.putObject({
+        Bucket: BUCKET_NAME,
+        Key: s3Key,
+        Body: Buffer.from(fileContent, 'base64'),
+        ContentType: 'video/mp4' // Default to mp4, could be enhanced to detect type
+      }).promise();
+      
+      finalVideoUrl = `https://${BUCKET_NAME}.s3.ap-south-1.amazonaws.com/${s3Key}`;
+      videoSize = Buffer.from(fileContent, 'base64').length;
+    }
 
     const videoItem = {
       id: `video-${subSectionId}`,
       courseId,
       subSectionId,
       type: 'video',
-      videoUrl,
+      videoUrl: finalVideoUrl,
       youtubeId: youtubeId || null,
-      originalUrl: originalUrl || videoUrl,
+      originalUrl: originalUrl || finalVideoUrl,
       videoDuration: 0,
-      videoSize: 0,
+      videoSize,
       videoType: videoType || 'youtube',
       videoStatus: 'ready',
       uploadedAt: new Date().toISOString()
