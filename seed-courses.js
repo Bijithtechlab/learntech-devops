@@ -27,7 +27,7 @@ const courses = [
     title: 'Smart Coding Revolution - AI Assisted Full-Stack Development',
     shortTitle: 'Smart Coding Revolution',
     description: 'Master the art of building full-stack applications using AI assistance and modern development tools. This intensive course covers Web Development Fundamentals including HTML, CSS, and JavaScript, followed by Vibe Coding with Next.js where you\'ll learn TypeScript, React components, hooks, and API development without getting bogged down in complex syntax.',
-    duration: '10 days',
+    duration: '15 days',
     price: 9999,
     level: 'Beginner',
     category: 'Technology',
