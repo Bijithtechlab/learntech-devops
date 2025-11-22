@@ -29,7 +29,7 @@ export const courses: Course[] = [
     title: 'Smart Coding Revolution - AI Assisted Full-Stack Development',
     shortTitle: 'Smart Coding Revolution',
     description: 'Master the art of building full-stack applications using AI assistance and modern development tools. This intensive course covers <strong>Web Development Fundamentals</strong> including HTML, CSS, and JavaScript, followed by <strong>Vibe Coding with Next.js</strong> where you\'ll learn TypeScript, React components, hooks, and API development without getting bogged down in complex syntax.\nYou\'ll gain hands-on experience with <strong>Git Version Control</strong> for professional development workflows, then dive into <strong>AI-Assisted Development</strong> where you\'ll build a complete Digital Notice Board application using Next.js and Supabase. Learn to create Project Requirement Documents with AI, implement authentication, database operations, and CRUD functionality.\nThe course emphasizes <strong>practical application building</strong> with features like file attachments, categories, user roles, notifications, and responsive design. You\'ll master <strong>deployment strategies</strong> with CI/CD pipelines and learn to create Progressive Web Apps (PWA) that can be installed on mobile devices. Perfect for beginners who want to build real-world applications using modern AI-powered development techniques.',
-    duration: '10 days',
+    duration: '15 days',
     price: 9999,
     level: 'Beginner',
     category: 'Technology',

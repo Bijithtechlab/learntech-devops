@@ -334,7 +334,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                       <div className="space-y-2 text-sm text-blue-800">
                         <div>
                           <span className="font-medium">Mode:</span>
-                          <span className="ml-1">Hybrid</span>
+                          <span className="ml-1">Online</span>
                         </div>
                         <div>
                           <span className="font-medium">Days:</span>
@@ -346,7 +346,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                         </div>
                         <div>
                           <span className="font-medium">Start:</span>
-                          <span className="ml-1">01-Sep-2025</span>
+                          <span className="ml-1">05-Jan-2026</span>
                         </div>
                       </div>
                     </div>
