@@ -5,7 +5,7 @@ const LAMBDA_API_URL = 'https://qgeusz2rj7.execute-api.ap-south-1.amazonaws.com/
 export async function GET() {
   try {
     const lambdaUrl = `${LAMBDA_API_URL}?t=${Date.now()}&r=${Math.random()}`
-    console.log('Fetching courses from Lambda:', lambdaUrl)
+    console.log('Fetching courses from DynamoDB via Lambda for all environments:', lambdaUrl)
     const response = await fetch(lambdaUrl, {
       cache: 'no-store',
       headers: {
@@ -16,9 +16,6 @@ export async function GET() {
     const data = await response.json()
     console.log('Lambda response status:', response.status)
     
-    const aiCourse = data.courses?.find(c => c.courseId === 'ai-devops-cloud')
-    console.log('AI course status from Lambda:', aiCourse?.status)
-
     if (!response.ok) {
       throw new Error(data.error || 'Lambda function failed')
     }
@@ -36,7 +33,7 @@ export async function GET() {
     console.error('Error calling courses Lambda:', error)
     return NextResponse.json({ 
       success: false, 
-      error: 'Failed to fetch courses',
+      error: 'Failed to fetch courses from DynamoDB',
       message: error.message
     }, { status: 500 })
   }

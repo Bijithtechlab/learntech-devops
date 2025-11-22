@@ -18,7 +18,7 @@ const courses = [
     level: 'Intermediate',
     category: 'Technology',
     features: ['Live Sessions', 'Hands-on Projects', 'AI Integration', 'Cloud Deployment'],
-    status: 'active',
+    status: 'coming-soon',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
