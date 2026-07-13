@@ -12,7 +12,7 @@ interface Course {
   level: string
   category: string
   features: string[]
-  status: 'active' | 'coming-soon'
+  status: 'active' | 'coming-soon' | 'completed'
 }
 
 export default function CoursesPage() {
@@ -46,6 +46,7 @@ export default function CoursesPage() {
   }
 
   const activeCourses = courses.filter(course => course.status === 'active')
+  const completedCourses = courses.filter(course => course.status === 'completed')
   const comingSoonCourses = courses.filter(course => course.status === 'coming-soon')
 
   return (
@@ -65,6 +66,17 @@ export default function CoursesPage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Available Now</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {activeCourses.map((course) => (
+                <CourseCard key={course.courseId} course={{...course, id: course.courseId}} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {completedCourses.length > 0 && (
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Completed</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {completedCourses.map((course) => (
                 <CourseCard key={course.courseId} course={{...course, id: course.courseId}} />
               ))}
             </div>

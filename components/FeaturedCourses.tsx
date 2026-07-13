@@ -3,7 +3,7 @@ import { getActiveCourses } from '@/data/courses'
 import CourseCard from './CourseCard'
 
 export default function FeaturedCourses() {
-  const activeCourses = getActiveCourses().slice(0, 3) // Show first 3 active courses
+  const activeCourses = getActiveCourses().slice(0, 3)
 
   return (
     <section className="py-20 bg-white">

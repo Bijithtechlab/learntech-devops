@@ -29,6 +29,9 @@ export default function CourseRegistrationsPage() {
   const [loading, setLoading] = useState(true)
   const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null)
   const [updating, setUpdating] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [courseFilter, setCourseFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('all')
 
   useEffect(() => {
     fetchRegistrations()
@@ -126,6 +129,18 @@ export default function CourseRegistrationsPage() {
     },
   }
 
+  const courseNames = Array.from(new Set(registrations.map(r => r.courseName || 'Legacy Registration'))).sort()
+
+  const filteredRegistrations = registrations.filter(reg => {
+    const matchesSearch = searchQuery === '' ||
+      `${reg.firstName} ${reg.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      reg.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      reg.phone.includes(searchQuery)
+    const matchesCourse = courseFilter === 'all' || (reg.courseName || 'Legacy Registration') === courseFilter
+    const matchesStatus = statusFilter === 'all' || reg.PaymentStatus === statusFilter
+    return matchesSearch && matchesCourse && matchesStatus
+  })
+
   if (loading) {
     return <div className="p-8">Loading...</div>
   }
@@ -176,8 +191,47 @@ export default function CourseRegistrationsPage() {
         </div>
         
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold">Total Registrations: {registrations.length}</h2>
+          <div className="px-6 py-4 border-b border-gray-200 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <h2 className="text-lg font-semibold">Registrations: {filteredRegistrations.length} of {registrations.length}</h2>
+              {(searchQuery || courseFilter !== 'all' || statusFilter !== 'all') && (
+                <button
+                  onClick={() => { setSearchQuery(''); setCourseFilter('all'); setStatusFilter('all') }}
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Clear All Filters
+                </button>
+              )}
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input
+                type="text"
+                placeholder="Search by name, email, or phone..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+              />
+              <select
+                value={courseFilter}
+                onChange={(e) => setCourseFilter(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                <option value="all">All Courses</option>
+                {courseNames.map(name => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                <option value="all">All Statuses</option>
+                <option value="pending">New Requests</option>
+                <option value="in-progress">Discussed Already</option>
+                <option value="completed">Payment Completed</option>
+              </select>
+            </div>
           </div>
           
           <div className="overflow-x-auto">
@@ -193,7 +247,7 @@ export default function CourseRegistrationsPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {registrations.map((reg) => (
+                {filteredRegistrations.map((reg) => (
                   <tr key={reg.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSelectedRegistration(reg)}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">

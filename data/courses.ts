@@ -8,7 +8,7 @@ export interface Course {
   level: string
   category: string
   features: string[]
-  status: 'active' | 'coming-soon'
+  status: 'active' | 'coming-soon' | 'completed'
 }
 
 export const courses: Course[] = [
@@ -34,7 +34,7 @@ export const courses: Course[] = [
     level: 'Beginner',
     category: 'Technology',
     features: ['AI-Assisted Coding', 'Full-Stack Project', 'No Complex Coding', 'PWA Development', 'Live Deployment'],
-    status: 'active'
+    status: 'coming-soon'
   },
   {
     id: 'pmp-certification',
@@ -95,6 +95,27 @@ export const courses: Course[] = [
     category: 'Management',
     features: ['Jira Administration', 'Agile Workflows', 'Scrum & Kanban', 'Reporting & Analytics'],
     status: 'coming-soon'
+  },
+  {
+    id: 'Vibe_AWS_AI',
+    title: 'Vibe Coding & AWS: Full-Stack Development Powered by AI',
+    shortTitle: 'Vibe Coding & AWS',
+    description: 'Master the art of building and deploying full-stack applications by talking to AI. This 4-week intensive course teaches you <strong>Vibe Coding</strong> — the revolutionary approach where you describe what you want in natural language and AI generates production-ready code.\nYou\'ll start with <strong>Foundations</strong> — setting up your development environment, mastering Amazon Q Developer (Chat, Inline, /dev, @workspace modes), Git version control, and a fast-track through web development fundamentals (HTML, CSS, JavaScript, React, Next.js, TypeScript, Tailwind CSS).\nWeek 2 covers <strong>AWS Cloud Foundations</strong> — creating your AWS account, IAM users/policies/roles, Lambda serverless functions, and RDS relational databases. You\'ll understand the cloud building blocks that power modern applications.\nIn Week 3, you\'ll build a complete <strong>Expense Tracker</strong> application feature-by-feature through AI conversation — project setup, landing page, transaction dashboard with categories, monthly reports with filtering and search, budgets, recurring transactions, and CSV export.\nWeek 4 brings it all together with <strong>authentication, AWS Amplify deployment</strong>, and a <strong>capstone project</strong> — a Personal Blog Platform you design and build independently using everything you\'ve learned. You\'ll present your deployed application to the class.\nNo prior coding experience required. You\'ll build two complete deployed applications by talking to AI.',
+    duration: '4 weeks',
+    price: 14999,
+    level: 'Beginner to Intermediate',
+    category: 'Technology',
+    features: [
+      'Vibe Coding with Amazon Q Developer',
+      'Next.js 14 Full-Stack Development',
+      'AWS Cloud — IAM, Lambda, RDS, DynamoDB, Amplify',
+      'Git & GitHub Version Control',
+      'Build 2 Complete Projects (Expense Tracker + Blog)',
+      'Live Deployment to AWS',
+      'TypeScript, React & Tailwind CSS',
+      'Hands-on Every Session'
+    ],
+    status: 'active'
   },
   {
     id: 'Agentic_AI',

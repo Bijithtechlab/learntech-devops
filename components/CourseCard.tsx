@@ -19,6 +19,11 @@ export default function CourseCard({ course }: CourseCardProps) {
               Coming<br />Soon
             </span>
           )}
+          {course.status === 'completed' && (
+            <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full text-center leading-tight">
+              Completed
+            </span>
+          )}
         </div>
         
         <p className="text-gray-600 text-sm mb-4 line-clamp-3">

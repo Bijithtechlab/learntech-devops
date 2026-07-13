@@ -1,7 +1,7 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { getCourseById } from '@/data/courses'
-import { aiDevOpsSyllabus, smartCodingSyllabus } from '@/data/syllabus'
+import { aiDevOpsSyllabus, smartCodingSyllabus, vibeCodingAwsSyllabus } from '@/data/syllabus'
 import Link from 'next/link'
 import { Clock, Users, Award, CheckCircle, BookOpen, Star, ChevronDown, ChevronUp, Briefcase } from 'lucide-react'
 import { notFound } from 'next/navigation'
@@ -17,11 +17,26 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
   const [showSyllabus, setShowSyllabus] = useState(false)
   const [showFullDescription, setShowFullDescription] = useState(false)
   const [showFullOutcomes, setShowFullOutcomes] = useState(false)
+  const [liveStatus, setLiveStatus] = useState<string | null>(null)
   const course = getCourseById(params.courseId)
+
+  useEffect(() => {
+    fetch('/api/courses')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          const match = data.courses.find((c: any) => c.courseId === params.courseId)
+          if (match?.status) setLiveStatus(match.status)
+        }
+      })
+      .catch(() => {})
+  }, [params.courseId])
 
   if (!course) {
     notFound()
   }
+
+  const status = liveStatus || course.status
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 overflow-x-hidden">
@@ -30,9 +45,14 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
           <div className="mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 break-words">{course.title}</h1>
-              {course.status === 'coming-soon' && (
+              {status === 'coming-soon' && (
                 <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm">
                   Coming Soon
+                </span>
+              )}
+              {status === 'completed' && (
+                <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm">
+                  Completed
                 </span>
               )}
             </div>
@@ -84,7 +104,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                 )}
               </div>
 
-              {course.id !== 'smart-coding-revolution' && (
+              {course.id !== 'smart-coding-revolution' && course.id !== 'Vibe_AWS_AI' && (
                 <>
                   <h2 className="text-xl font-semibold mb-4">What You'll Learn</h2>
                   <ul className="space-y-3 mb-6">
@@ -95,6 +115,82 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                       </li>
                     ))}
                   </ul>
+                </>
+              )}
+
+              {course.id === 'Vibe_AWS_AI' && (
+                <>
+                  <h2 className="text-xl font-semibold mb-4">Course Outcomes</h2>
+                  <div className="space-y-4 mb-6">
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold text-blue-800 mb-3">Vibe Coding Mastery</h3>
+                      <ul className="space-y-2 text-sm text-gray-700">
+                        <li><strong>AI-First Development:</strong> Build full-stack applications by describing features in natural language to Amazon Q Developer</li>
+                        <li><strong>Prompt Engineering:</strong> Master the art of writing precise prompts that generate production-ready code</li>
+                        <li><strong>Multi-Mode Proficiency:</strong> Use Chat, Inline, /dev, and @workspace modes for different development scenarios</li>
+                      </ul>
+                    </div>
+                    
+                    {!showFullOutcomes ? (
+                      <button 
+                        onClick={() => setShowFullOutcomes(true)}
+                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium mt-2"
+                      >
+                        Read More <ChevronDown className="h-4 w-4" />
+                      </button>
+                    ) : (
+                      <>
+                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
+                          <h3 className="text-lg font-semibold text-green-800 mb-3">Full-Stack Development</h3>
+                          <ul className="space-y-2 text-sm text-gray-700">
+                            <li><strong>Next.js 14:</strong> Build complete applications with file-based routing, API routes, and TypeScript</li>
+                            <li><strong>React & Tailwind CSS:</strong> Create responsive, modern UIs with component-based architecture</li>
+                            <li><strong>Database Integration:</strong> Design schemas and build CRUD APIs with RDS and DynamoDB</li>
+                          </ul>
+                        </div>
+                        
+                        <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-lg p-4">
+                          <h3 className="text-lg font-semibold text-orange-800 mb-3">AWS Cloud Skills</h3>
+                          <ul className="space-y-2 text-sm text-gray-700">
+                            <li><strong>IAM & Security:</strong> Create users, policies, and roles following security best practices</li>
+                            <li><strong>Serverless:</strong> Build and deploy Lambda functions with API Gateway triggers</li>
+                            <li><strong>Deployment:</strong> Deploy full-stack apps to AWS Amplify with CI/CD pipelines</li>
+                          </ul>
+                        </div>
+                        
+                        <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4">
+                          <h3 className="text-lg font-semibold text-purple-800 mb-3">Professional Workflow</h3>
+                          <ul className="space-y-2 text-sm text-gray-700">
+                            <li><strong>Git & GitHub:</strong> Feature branch workflow, commits, merges, and collaboration</li>
+                            <li><strong>Iterative Development:</strong> Describe → Review → Test → Iterate → Commit → Repeat</li>
+                            <li><strong>Debugging with AI:</strong> Diagnose and fix runtime errors, UI issues, and API failures</li>
+                          </ul>
+                        </div>
+                        
+                        <div className="bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-200 rounded-lg p-4">
+                          <h3 className="text-lg font-semibold text-teal-800 mb-3">Real Projects</h3>
+                          <ul className="space-y-2 text-sm text-gray-700">
+                            <li><strong>Expense Tracker:</strong> Full-featured app with auth, transactions, reports, budgets, and CSV export</li>
+                            <li><strong>Personal Blog Platform:</strong> Independent capstone project designed and deployed by you</li>
+                            <li><strong>Live Deployment:</strong> Both projects deployed and accessible on the internet via AWS Amplify</li>
+                          </ul>
+                        </div>
+                        
+                        <div className="bg-gradient-to-r from-violet-50 to-purple-50 border-2 border-violet-300 rounded-lg p-4 mt-4">
+                          <p className="text-center text-violet-800 font-semibold">
+                            Graduates will be able to <strong>build and deploy full-stack web applications by talking to AI</strong>, with deep understanding of AWS cloud services — ready for modern development roles.
+                          </p>
+                        </div>
+                        
+                        <button 
+                          onClick={() => setShowFullOutcomes(false)}
+                          className="flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium mt-2"
+                        >
+                          Read Less <ChevronUp className="h-4 w-4" />
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </>
               )}
 
@@ -211,7 +307,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                 </>
               )}
 
-              {(course.id === 'ai-devops-cloud' || course.id === 'smart-coding-revolution') && (
+              {(course.id === 'ai-devops-cloud' || course.id === 'smart-coding-revolution' || course.id === 'Vibe_AWS_AI') && (
                 <>
                   <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-lg p-4 sm:p-6 mt-6">
                     <div className="flex items-center gap-3 mb-3">
@@ -242,7 +338,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                     </div>
                   )}
                   
-                  {course.id === 'smart-coding-revolution' && (
+                  {(course.id === 'smart-coding-revolution' || course.id === 'Vibe_AWS_AI') && (
                     <div className="mt-6">
                       <button
                         onClick={() => setShowSyllabus(true)}
@@ -267,19 +363,28 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                 </div>
 
                 <div className="space-y-3">
-                  {course.status === 'active' ? (
+                  {status === 'active' && (
                     <Link
                       href={`/register/${course.id}`}
                       className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-center block"
                     >
                       Register Now
                     </Link>
-                  ) : (
+                  )}
+                  {status === 'coming-soon' && (
                     <button
                       disabled
                       className="w-full bg-gray-400 text-white py-3 px-4 rounded-lg font-semibold cursor-not-allowed"
                     >
                       Coming Soon
+                    </button>
+                  )}
+                  {status === 'completed' && (
+                    <button
+                      disabled
+                      className="w-full bg-gray-500 text-white py-3 px-4 rounded-lg font-semibold cursor-not-allowed"
+                    >
+                      Course Completed
                     </button>
                   )}
                   
@@ -315,7 +420,7 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                   </div>
                 )}
                 
-                {course.id === 'smart-coding-revolution' && (
+                {(course.id === 'smart-coding-revolution' || course.id === 'Vibe_AWS_AI') && (
                   <>
                     <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-6">
                       <h3 className="text-lg font-semibold text-gray-900 mb-3">What You'll Learn</h3>
@@ -338,15 +443,19 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
                         </div>
                         <div>
                           <span className="font-medium">Days:</span>
-                          <span className="ml-1">Mon, Tue, Wed, Thu, Fri</span>
+                          <span className="ml-1">{course.id === 'Vibe_AWS_AI' ? 'Mon, Tue, Wed, Thu' : 'Mon, Tue, Wed, Thu, Fri'}</span>
                         </div>
                         <div>
                           <span className="font-medium">Time:</span>
-                          <span className="ml-1">06:30-08:30 PM IST</span>
+                          <span className="ml-1">{course.id === 'Vibe_AWS_AI' ? '07:00-09:00 PM IST' : '06:30-08:30 PM IST'}</span>
+                        </div>
+                        <div>
+                          <span className="font-medium">Duration:</span>
+                          <span className="ml-1">{course.id === 'Vibe_AWS_AI' ? '4 weeks (17 sessions, ~2 hours each)' : '15 days'}</span>
                         </div>
                         <div>
                           <span className="font-medium">Start:</span>
-                          <span className="ml-1">05-Jan-2026</span>
+                          <span className="ml-1">{course.id === 'Vibe_AWS_AI' ? 'Coming Soon' : '05-Jan-2026'}</span>
                         </div>
                       </div>
                     </div>
@@ -371,6 +480,15 @@ export default function CourseDetailPage({ params }: CourseDetailPageProps) {
             isOpen={showSyllabus}
             onClose={() => setShowSyllabus(false)}
             syllabus={smartCodingSyllabus}
+            courseTitle={course.title}
+          />
+        )}
+        
+        {course.id === 'Vibe_AWS_AI' && (
+          <SyllabusModal
+            isOpen={showSyllabus}
+            onClose={() => setShowSyllabus(false)}
+            syllabus={vibeCodingAwsSyllabus}
             courseTitle={course.title}
           />
         )}
