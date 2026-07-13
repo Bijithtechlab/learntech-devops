@@ -37,6 +37,9 @@ export default function Header() {
             <Link href="/trainers" className="text-gray-700 hover:text-blue-600 font-medium">
               Trainers
             </Link>
+            <Link href="/for-institutions" className="text-gray-700 hover:text-blue-600 font-medium">
+              For Institutions
+            </Link>
             <Link href="/products" className="text-gray-700 hover:text-blue-600 font-medium">
               Products
             </Link>
@@ -86,6 +89,13 @@ export default function Header() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Trainers
+              </Link>
+              <Link 
+                href="/for-institutions" 
+                className="block text-gray-700 hover:text-blue-600 font-medium py-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                For Institutions
               </Link>
               <Link 
                 href="/products" 
