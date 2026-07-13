@@ -514,9 +514,9 @@ export default function ForInstitutionsPage() {
                 <span className="text-lg font-bold text-white">VK</span>
               </div>
               <h3 className="text-base font-bold text-gray-900 mb-0.5">Vinod Kumar</h3>
-              <p className="text-blue-600 text-xs font-medium mb-0.5">Program Coordinator</p>
-              <p className="text-gray-500 text-[11px]">Senior IT Training Specialist</p>
-              <p className="text-gray-500 text-[11px]">39+ Years Experience</p>
+              <p className="text-blue-600 text-xs font-medium mb-0.5">Program Director</p>
+              <p className="text-gray-500 text-[11px]">Senior Technology Training Expert</p>
+              <p className="text-gray-500 text-[11px]">39+ Years in Technology Education</p>
               <p className="text-gray-500 text-[11px] mb-3">15,000+ Students Trained</p>
               <a 
                 href="tel:+918438468048" 
