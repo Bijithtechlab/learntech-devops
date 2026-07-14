@@ -104,42 +104,135 @@ export default function ForInstitutionsPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 text-white overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500 rounded-full blur-3xl"></div>
+      <section className="relative text-white overflow-hidden">
+        <div className="absolute inset-0">
+          <img src="/images/institutions.png" alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/30"></div>
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-              Artificial Intelligence is Redefining the Future of{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-                Software Engineering
-              </span>
-            </h1>
-            <p className="text-lg md:text-xl text-gray-300 leading-relaxed mb-6 max-w-4xl mx-auto">
-              The era of writing code line by line is rapidly giving way to AI-powered software development. 
-              Professionals who can effectively collaborate with AI will lead the next generation of innovation.
-            </p>
-            <p className="text-lg text-gray-300 leading-relaxed mb-10 max-w-4xl mx-auto">
-              Students who acquire expertise in AI, Large Language Models, Prompt Engineering, Cloud Computing, 
-              and modern software technologies will possess the skills most sought after by global employers.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a 
-                href="#contact" 
-                className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg font-semibold transition-colors text-lg"
-              >
-                Schedule a Demo Session
-                <ArrowRight className="h-5 w-5" />
-              </a>
-              <a 
-                href="#curriculum" 
-                className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/30 text-white px-8 py-4 rounded-lg font-semibold transition-colors text-lg"
-              >
-                View Curriculum
-              </a>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-64 md:pt-80 pb-6 md:pb-8 flex items-end">
+          <div className="text-center max-w-xl mx-auto">
+            <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-lg p-4 shadow-2xl">
+              <h1 className="text-lg md:text-xl font-bold leading-tight mb-3 drop-shadow-lg">
+                Prepare Your Students for the{' '}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+                  AI-First Workforce
+                </span>
+              </h1>
+              <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                <a 
+                  href="#contact" 
+                  className="inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md font-semibold transition-colors text-xs"
+                >
+                  Schedule a Demo Session
+                  <ArrowRight className="h-3 w-3" />
+                </a>
+                <a 
+                  href="#curriculum" 
+                  className="inline-flex items-center justify-center gap-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/30 text-white px-3 py-1.5 rounded-md font-semibold transition-colors text-xs"
+                >
+                  View Curriculum
+                </a>
+              </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+
+      {/* What We Offer Section */}
+      <section className="py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-10 items-center">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 whitespace-nowrap">
+                Industry-Aligned Training, Delivered at Your Institution
+              </h2>
+              <p className="text-base text-gray-600 leading-relaxed mb-5">
+                Most graduates aren&apos;t prepared for the AI-first job market. We change that — delivering hands-on training in AI development, cloud computing, and modern software engineering directly at your institution. Our mission is to equip them with future-ready skills that enhance employability and prepare them to excel in the global technology workforce.
+              </p>
+              <div className="space-y-3">
+                {partnerBenefits.map((benefit, index) => (
+                  <div key={index} className="flex items-center gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <benefit.icon className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <span className="font-semibold text-gray-900 text-sm">{benefit.title}</span>
+                      <span className="text-gray-500 text-sm"> — {benefit.description}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Program Highlights</h3>
+              <div className="space-y-3">
+                {[
+                  'Hands-on, project-based learning methodology',
+                  'Students deploy a working AI application by course end',
+                  'Curriculum designed by active industry practitioners',
+                  'Real-world tools: AWS, LLMs, React, Python, FastAPI',
+                  'Industry-recognized certification upon completion',
+                  'Flexible scheduling aligned with academic calendar'
+                ].map((item, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                    <span className="text-sm text-gray-700">{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Curriculum Section */}
+      <section id="curriculum" className="py-12 bg-gradient-to-b from-gray-50 via-white to-gray-50 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.03]">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500 rounded-full blur-3xl"></div>
+        </div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <span className="inline-block bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-widest px-4 py-1 rounded-full mb-3">Curriculum</span>
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+              What Students Will Learn
+            </h2>
+            <div className="w-14 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full mx-auto mb-3"></div>
+            <p className="text-sm text-gray-600 max-w-2xl mx-auto">
+              From foundational AI concepts to production-ready deployments — every module maps directly to industry job requirements
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {learningOutcomes.map((outcome, index) => {
+              const colors = [
+                { border: 'border-t-blue-500', bg: 'bg-blue-50', iconBg: 'bg-blue-100', iconText: 'text-blue-600', hoverBorder: 'hover:border-blue-200' },
+                { border: 'border-t-purple-500', bg: 'bg-purple-50', iconBg: 'bg-purple-100', iconText: 'text-purple-600', hoverBorder: 'hover:border-purple-200' },
+                { border: 'border-t-emerald-500', bg: 'bg-emerald-50', iconBg: 'bg-emerald-100', iconText: 'text-emerald-600', hoverBorder: 'hover:border-emerald-200' },
+                { border: 'border-t-orange-500', bg: 'bg-orange-50', iconBg: 'bg-orange-100', iconText: 'text-orange-600', hoverBorder: 'hover:border-orange-200' },
+                { border: 'border-t-cyan-500', bg: 'bg-cyan-50', iconBg: 'bg-cyan-100', iconText: 'text-cyan-600', hoverBorder: 'hover:border-cyan-200' },
+                { border: 'border-t-rose-500', bg: 'bg-rose-50', iconBg: 'bg-rose-100', iconText: 'text-rose-600', hoverBorder: 'hover:border-rose-200' },
+                { border: 'border-t-indigo-500', bg: 'bg-indigo-50', iconBg: 'bg-indigo-100', iconText: 'text-indigo-600', hoverBorder: 'hover:border-indigo-200' },
+                { border: 'border-t-amber-500', bg: 'bg-amber-50', iconBg: 'bg-amber-100', iconText: 'text-amber-600', hoverBorder: 'hover:border-amber-200' },
+              ]
+              const color = colors[index % colors.length]
+              const tags = ['Core', 'High Demand', 'Advanced', 'Trending', 'Essential', 'In Demand', 'Industry Standard', 'Capstone']
+              return (
+                <div 
+                  key={index} 
+                  className={`bg-white rounded-lg p-4 border border-gray-200 border-t-4 ${color.border} ${color.hoverBorder} hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className={`w-9 h-9 ${color.iconBg} rounded-lg flex items-center justify-center`}>
+                      <outcome.icon className={`h-4 w-4 ${color.iconText}`} />
+                    </div>
+                    <span className={`text-[10px] font-bold uppercase tracking-wide ${color.iconText} ${color.bg} px-2 py-0.5 rounded-full`}>{tags[index]}</span>
+                  </div>
+                  <h3 className="font-bold text-gray-900 mb-1 text-sm">{outcome.title}</h3>
+                  <p className="text-xs text-gray-600 leading-relaxed">{outcome.description}</p>
+                </div>
+              )
+            })}
           </div>
         </div>
       </section>
@@ -246,106 +339,6 @@ export default function ForInstitutionsPage() {
             <p className="text-xs text-gray-500">
               AI-related job postings grew <span className="font-bold text-gray-800">3.5x in 2024</span> — the demand is only accelerating.
             </p>
-          </div>
-        </div>
-      </section>
-
-      {/* What We Offer Section */}
-      <section className="py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-10 items-center">
-            <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-                Industry-Aligned Training, Delivered at Your Institution
-              </h2>
-              <p className="text-base text-gray-600 leading-relaxed mb-5">
-                We deliver this industry-aligned training program directly at your institution, providing students 
-                with practical, hands-on exposure to the latest AI and software technologies. Our mission is to equip them with future-ready skills that enhance employability 
-                and prepare them to excel in the global technology workforce.
-              </p>
-              <div className="space-y-3">
-                {partnerBenefits.map((benefit, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <benefit.icon className="h-4 w-4 text-blue-600" />
-                    </div>
-                    <div>
-                      <span className="font-semibold text-gray-900 text-sm">{benefit.title}</span>
-                      <span className="text-gray-500 text-sm"> — {benefit.description}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Program Highlights</h3>
-              <div className="space-y-3">
-                {[
-                  'Hands-on, project-based learning methodology',
-                  'Students deploy a working AI application by course end',
-                  'Curriculum designed by active industry practitioners',
-                  'Real-world tools: AWS, LLMs, React, Python, FastAPI',
-                  'Industry-recognized certification upon completion',
-                  'Flexible scheduling aligned with academic calendar'
-                ].map((item, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
-                    <span className="text-sm text-gray-700">{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Curriculum Section */}
-      <section id="curriculum" className="py-12 bg-gradient-to-b from-gray-50 via-white to-gray-50 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.03]">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500 rounded-full blur-3xl"></div>
-        </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <span className="inline-block bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-widest px-4 py-1 rounded-full mb-3">Curriculum</span>
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-              What Students Will Learn
-            </h2>
-            <div className="w-14 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full mx-auto mb-3"></div>
-            <p className="text-sm text-gray-600 max-w-2xl mx-auto">
-              From foundational AI concepts to production-ready deployments — every module maps directly to industry job requirements
-            </p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {learningOutcomes.map((outcome, index) => {
-              const colors = [
-                { border: 'border-t-blue-500', bg: 'bg-blue-50', iconBg: 'bg-blue-100', iconText: 'text-blue-600', hoverBorder: 'hover:border-blue-200' },
-                { border: 'border-t-purple-500', bg: 'bg-purple-50', iconBg: 'bg-purple-100', iconText: 'text-purple-600', hoverBorder: 'hover:border-purple-200' },
-                { border: 'border-t-emerald-500', bg: 'bg-emerald-50', iconBg: 'bg-emerald-100', iconText: 'text-emerald-600', hoverBorder: 'hover:border-emerald-200' },
-                { border: 'border-t-orange-500', bg: 'bg-orange-50', iconBg: 'bg-orange-100', iconText: 'text-orange-600', hoverBorder: 'hover:border-orange-200' },
-                { border: 'border-t-cyan-500', bg: 'bg-cyan-50', iconBg: 'bg-cyan-100', iconText: 'text-cyan-600', hoverBorder: 'hover:border-cyan-200' },
-                { border: 'border-t-rose-500', bg: 'bg-rose-50', iconBg: 'bg-rose-100', iconText: 'text-rose-600', hoverBorder: 'hover:border-rose-200' },
-                { border: 'border-t-indigo-500', bg: 'bg-indigo-50', iconBg: 'bg-indigo-100', iconText: 'text-indigo-600', hoverBorder: 'hover:border-indigo-200' },
-                { border: 'border-t-amber-500', bg: 'bg-amber-50', iconBg: 'bg-amber-100', iconText: 'text-amber-600', hoverBorder: 'hover:border-amber-200' },
-              ]
-              const color = colors[index % colors.length]
-              const tags = ['Core', 'High Demand', 'Advanced', 'Trending', 'Essential', 'In Demand', 'Industry Standard', 'Capstone']
-              return (
-                <div 
-                  key={index} 
-                  className={`bg-white rounded-lg p-4 border border-gray-200 border-t-4 ${color.border} ${color.hoverBorder} hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group`}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className={`w-9 h-9 ${color.iconBg} rounded-lg flex items-center justify-center`}>
-                      <outcome.icon className={`h-4 w-4 ${color.iconText}`} />
-                    </div>
-                    <span className={`text-[10px] font-bold uppercase tracking-wide ${color.iconText} ${color.bg} px-2 py-0.5 rounded-full`}>{tags[index]}</span>
-                  </div>
-                  <h3 className="font-bold text-gray-900 mb-1 text-sm">{outcome.title}</h3>
-                  <p className="text-xs text-gray-600 leading-relaxed">{outcome.description}</p>
-                </div>
-              )
-            })}
           </div>
         </div>
       </section>
