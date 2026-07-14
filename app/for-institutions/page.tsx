@@ -104,31 +104,31 @@ export default function ForInstitutionsPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative text-white overflow-hidden">
+      <section className="relative text-white overflow-hidden min-h-[25vh] md:min-h-0">
         <div className="absolute inset-0">
           <img src="/images/institutions.png" alt="" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/30"></div>
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 md:py-40 flex items-center justify-center">
-          <div className="text-center max-w-sm mx-auto">
-            <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-lg px-4 py-3 shadow-2xl">
-              <h1 className="text-base md:text-lg font-bold leading-tight mb-2 drop-shadow-lg">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-0 md:py-40 flex items-start justify-end md:items-center md:justify-center h-full">
+          <div className="text-right md:text-center max-w-sm md:mx-auto mt-1 md:mt-0">
+            <div className="md:backdrop-blur-md md:bg-white/10 md:border md:border-white/20 md:rounded-lg px-2 py-1.5 md:px-4 md:py-3 md:shadow-2xl">
+              <h1 className="text-[11px] md:text-lg font-bold leading-tight mb-0.5 md:mb-2 drop-shadow-lg">
                 Make Your Students{' '}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
                   AI-Ready
                 </span>
               </h1>
-              <div className="flex flex-col sm:flex-row gap-2 justify-center">
+              <div className="flex flex-row gap-1 md:gap-2 justify-center">
                 <a 
                   href="#contact" 
-                  className="inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md font-semibold transition-colors text-xs"
+                  className="inline-flex items-center justify-center gap-0.5 md:gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-1.5 py-0.5 md:px-3 md:py-1.5 rounded font-semibold transition-colors text-[8px] md:text-xs"
                 >
                   Let&apos;s Connect
-                  <ArrowRight className="h-3 w-3" />
+                  <ArrowRight className="h-2 w-2 md:h-3 md:w-3" />
                 </a>
                 <a 
                   href="#curriculum" 
-                  className="inline-flex items-center justify-center gap-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/30 text-white px-3 py-1.5 rounded-md font-semibold transition-colors text-xs"
+                  className="inline-flex items-center justify-center gap-0.5 md:gap-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/30 text-white px-1.5 py-0.5 md:px-3 md:py-1.5 rounded font-semibold transition-colors text-[8px] md:text-xs"
                 >
                   View Curriculum
                 </a>
@@ -144,7 +144,7 @@ export default function ForInstitutionsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-10 items-center">
             <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 whitespace-nowrap">
+              <h2 className="text-xl md:text-3xl font-bold text-gray-900 mb-4 md:whitespace-nowrap">
                 Industry-Aligned Training, Delivered at Your Institution
               </h2>
               <p className="text-base text-gray-600 leading-relaxed mb-5">
