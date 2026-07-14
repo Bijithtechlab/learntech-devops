@@ -109,13 +109,13 @@ export default function ForInstitutionsPage() {
           <img src="/images/institutions.png" alt="" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/30"></div>
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-64 md:pt-80 pb-6 md:pb-8 flex items-end">
-          <div className="text-center max-w-xl mx-auto">
-            <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-lg p-4 shadow-2xl">
-              <h1 className="text-lg md:text-xl font-bold leading-tight mb-3 drop-shadow-lg">
-                Prepare Your Students for the{' '}
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 md:py-40 flex items-center justify-center">
+          <div className="text-center max-w-sm mx-auto">
+            <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-lg px-4 py-3 shadow-2xl">
+              <h1 className="text-base md:text-lg font-bold leading-tight mb-2 drop-shadow-lg">
+                Make Your Students{' '}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-                  AI-First Workforce
+                  AI-Ready
                 </span>
               </h1>
               <div className="flex flex-col sm:flex-row gap-2 justify-center">
@@ -123,7 +123,7 @@ export default function ForInstitutionsPage() {
                   href="#contact" 
                   className="inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md font-semibold transition-colors text-xs"
                 >
-                  Schedule a Demo Session
+                  Let&apos;s Connect
                   <ArrowRight className="h-3 w-3" />
                 </a>
                 <a 
