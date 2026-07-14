@@ -60,9 +60,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="LearnTechLab LMS" />
+        <meta name="apple-mobile-web-app-title" content="LearnTechLab" />
         <meta name="format-detection" content="telephone=no" />
       </head>
       <body className={inter.className}>
