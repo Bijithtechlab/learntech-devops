@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'AI Training for Institutions | LearnTechLab',
     description: 'Make your students AI-Ready. We deliver hands-on training in AI development, cloud computing, and modern software engineering directly at your institution.',
-    images: ['/images/institutions.png'],
+    images: ['https://www.learntechlab.com/images/institutions.png'],
     type: 'website',
   },
 }
